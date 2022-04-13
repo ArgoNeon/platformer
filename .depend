@@ -1,0 +1,3 @@
+main.o: main.cpp include/person.hpp include/camera.hpp
+camera.o: source/camera.cpp source/../include/camera.hpp
+person.o: source/person.cpp source/../include/person.hpp
