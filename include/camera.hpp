@@ -11,7 +11,6 @@ class Camera{
 		sf::View getView();
 		void getCoordinateView(float x,float y);
 
-
 };
 
 #endif// VIEW_H

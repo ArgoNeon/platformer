@@ -15,7 +15,7 @@ class Person {
 		sf::Texture texture;
 		sf::Sprite sprite;
 		
-		Person(std::string File, float X, float Y, float W, float H);
+		Person(std::string file, float x, float y, int  w, int  h);
 		float getCoordinateX();
 		float getCoordinateY();
 

@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -Wall
 PROG = game
-OBJECT = person.o camera.o map.o
+OBJECT = camera.o map.o  person.o 
 OBJ = $(addprefix source/, $(OBJECT)) main.o
 SRCDIR = . source
 SRC = $(addsuffix /*.cpp, $(SRCDIR))
