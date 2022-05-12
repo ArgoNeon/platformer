@@ -17,7 +17,7 @@ class Map{
                 sf::Sprite sprite;
 		int h, w;
 		int num_tile;
-		Map(std::string, std::string tile, int h, int w, int num_tile);	
+		Map(std::string, std::string tile, int w, int h, int num_tile);	
 		
 };
 

@@ -1,3 +1,9 @@
-main.o: main.cpp include/person.hpp include/camera.hpp
+main.o: main.cpp include/person.hpp include/camera.hpp include/map.hpp \
+ include/gameObj.hpp
 camera.o: source/camera.cpp source/../include/camera.hpp
+gameObj.o: source/gameObj.cpp source/../include/gameObj.hpp
+gameTile.o: source/gameTile.cpp source/../include/gameTile.hpp
+gameWorld.o: source/gameWorld.cpp source/../include/gameWorld.hpp \
+ source/../include/gameTile.hpp
+map.o: source/map.cpp source/../include/map.hpp
 person.o: source/person.cpp source/../include/person.hpp

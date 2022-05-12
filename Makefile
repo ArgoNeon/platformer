@@ -1,11 +1,11 @@
 CXX = g++
 CXXFLAGS = -Wall
 PROG = game
-OBJECT = camera.o map.o  person.o 
+OBJECT = camera.o map.o person.o gameObj.o
 OBJ = $(addprefix source/, $(OBJECT)) main.o
 SRCDIR = . source
 SRC = $(addsuffix /*.cpp, $(SRCDIR))
-SFML = -lsfml-graphics -lsfml-window -lsfml-system
+SFML = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
  
 all: $(PROG)
 
