@@ -1,9 +1,0 @@
-#ifdef GAMEOBJ_INANIMATE_INTERACTIVE_HPP
-#define GAMEOBJ_INANIMATE_INTERACTIVE_HPP
-
-class gameObjInanimateInteractive{
-	
-};
-
-#endif //GAMEOBJ_INANIMATE_INTERACTIVE_HPP
-

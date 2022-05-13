@@ -17,9 +17,11 @@
 
 int main() {
     	sf::RenderWindow window(sf::VideoMode(WINDOW_W, WINDOW_H), "GAME", sf::Style::Default);
-   	Map map("background0.jpg", "tile0.jpg", 210, 66, 1);
+   	Map map("background_1.jpg", "tile_1.png", 800, 6400);
    	Person hero("Hero.jpg", 100, 100, HERO_W,  HERO_H);
    	Camera camera(100, 100, CAMERA_W, CAMERA_H, CAMERA_SPEED, WINDOW_W, WINDOW_H);
+	map.readMapOfTiles("map_1.dat");
+	map.writeMapOfTiles("test.dat");
     
    	float Frame;
  	float speed = 0.2;
@@ -83,7 +85,8 @@ int main() {
 	camera.viewMap(time);
 	hero.update(time);
         window.clear();
-	window.draw(map.sprite);
+	window.draw(map.sprite_back);
+	map.drawTiles(window);
         window.draw(hero.sprite);
         window.display();
     }
