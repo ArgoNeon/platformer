@@ -8,44 +8,14 @@
 
 void Person::control(float time, Camera &camera) {
 
-        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
-                state_ = state::IDLE;
-                frame_ += FRAME_SPEED;
+        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
+		idle();
 
-                if(frame_ >= idle_)
-                        frame_ = std::fmod(frame_, idle_);
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		runRight(camera);
 
-                if (dir_idle_ == dir_idle::RIGHT)
-                        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-                else
-                        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-        }
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-                dir_ = dir::RIGHT;
-                dir_idle_ = dir_idle::RIGHT;
-                state_ = state::RUN;
-                frame_ += FRAME_SPEED;
-
-                if(frame_ >= run_)
-                        frame_ = std::fmod(frame_, run_);
-
-                sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-                camera.setCoordView(border_);
-        }
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-                dir_ = dir::LEFT;
-                dir_idle_ = dir_idle::LEFT;
-                state_ = state::RUN;
-                frame_ += FRAME_SPEED;
-
-                if(frame_ >= run_)
-                        frame_ = std::fmod(frame_, run_);
-
-                sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-                camera.setCoordView(border_);
-        }
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
+		runLeft(camera);
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
 		sf::Vector2f camera_coord = camera.getCoord();
@@ -72,6 +42,46 @@ void Person::control(float time, Camera &camera) {
         }
 }
 
+void Person::idle() {
+	state_ = state::IDLE;
+        frame_ += frame_speed_;
+
+	if(frame_ >= idle_)
+        	frame_ = std::fmod(frame_, idle_);
+
+	if (dir_idle_ == dir_idle::RIGHT)
+       		sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+  	else
+        	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+
+}
+
+void Person::runRight(Camera &camera) {
+	dir_ = dir::RIGHT;
+        dir_idle_ = dir_idle::RIGHT;
+        state_ = state::RUN;
+        frame_ += frame_speed_;
+
+     	if(frame_ >= run_)
+        	frame_ = std::fmod(frame_, run_);
+
+        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+ 	camera.setCoordView(border_);
+}
+
+void Person::runLeft(Camera &camera) {
+	dir_ = dir::LEFT;
+	dir_idle_ = dir_idle::LEFT;
+        state_ = state::RUN;
+        frame_ += frame_speed_;
+
+        if(frame_ >= run_)
+        	frame_ = std::fmod(frame_, run_);
+
+   	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+       	camera.setCoordView(border_);
+
+}
 
 void Vessel::interactWithMap(Map &map) {
 	long int width = map.getWidth();
@@ -86,12 +96,27 @@ void Vessel::interactWithMap(Map &map) {
         for (std::vector<char>::size_type str = coord_str; str <= border_str; str++)
                 for (std::vector<char>::size_type col = coord_col; col <= border_col; col++) 
                         if (map.mapOfTiles_[str * width + col] == 'g') {
-                                if ((speed_.x > 0) && (border_col <= col)) {
-                                        speed_.x = 0;
-                                }
+				if ((speed_.y > 0) && (border_str == str)) {
+                                        speed_.y = 0;
+					onGround_ = true;
+				}
+
+				if ((speed_.y < 0) && (coord_str == str)) {
+                                        speed_.y = 0;
+                                        onGround_ = false;
+				}
+
+				if (onGround_ && (str < border_str)) {
+					if ((speed_.x > 0) && (border_col == col))
+                                        	speed_.x = 0;
                         
-                                if ((speed_.x < 0) && (coord_col >= col)) {
-					speed_.x = 0;
+                                	if ((speed_.x < 0) && (coord_col == col))
+                                        	speed_.x = 0;
+				} 
+
+                                if ((speed_.y < 0) && (coord_str == str)) {
+                                        speed_.y = 0;
+					onGround_ = false;
 				}
 			}
 }
@@ -109,18 +134,20 @@ void Vessel::update(float time, Map &map) {
                         speed_.y = 0;
                         break;
                 case dir::UP:
-                        speed_.x = 0;
-                        speed_.y = -speedOfRun_;
                         break;
                 case dir::DOWN:
-                        speed_.x = 0;
-                        speed_.y = speedOfRun_;
                         break;
                 }
                 break;
         default:
                 break;
         }
+	
+	if (speed_.y < speedOfRun_) {
+		speed_.y += acel_.y * pow(time, 2) / 2.0;
+		if (speed_.y > speedOfRun_)
+			speed_.y = speedOfRun_;
+	}
 
         interactWithMap(map);
 
@@ -160,7 +187,7 @@ void Vessel::initVessel(std::string name, sf::Vector2f coord) {
 	coord_frame_ = coord_ - shift_;
 	border_ = coord_ + psize_;
 	speed_ = {0, 0};
-	acel_ = {0, 0};
+	acel_ = {0, 0.5};
 
 	dir_ = dir::RIGHT;
 	dir_idle_ = dir_idle::RIGHT;
@@ -244,8 +271,6 @@ void Person::initPerson(std::string name, sf::Vector2f coord) {
 	initVessel(name, coord);
 
 	soul::PERSON;
-
-	speedOfRun_ = 0.1;
 	
 	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
 	

@@ -7,8 +7,6 @@
 #include "map.hpp"
 #include "camera.hpp"
 
-#define FRAME_SPEED 0.05
-
 class Vessel {
 	protected:
 		sf::Vector2f coord_;	//coordinate
@@ -28,7 +26,10 @@ class Vessel {
 		int fall_;
 
 		float frame_;
-		float speedOfRun_;
+		float speedOfRun_ = 0.08;
+		const float frame_speed_ = 0.04;
+		
+		bool onGround_;
 	public:
 		enum class soul {
 			PERSON,
@@ -95,6 +96,10 @@ class Person: public Vessel {
 	public:
 		void initPerson(std::string name, sf::Vector2f coord);
 		void control(float time, Camera &camera);
+
+		void idle();
+		void runRight(Camera &camera);
+		void runLeft(Camera &camera);
 		
 		Person() : Vessel() {}
 		~Person() override = default;
