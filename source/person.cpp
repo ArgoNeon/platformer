@@ -6,6 +6,64 @@
 #include "../include/person.hpp"
 #include "../include/functions.hpp"
 
+void Vessel::interactWithMap(Map &map) {
+	long int width = map.getWidth();
+        const std::vector<char>::size_type coord = map.getTileFromCoord(coord_);
+        const std::vector<char>::size_type coord_str = coord / width;
+        const std::vector<char>::size_type coord_col = coord %  width;
+
+        const std::vector<char>::size_type border = map.getTileFromCoord(border_);
+        const std::vector<char>::size_type border_str = border / width;
+        const std::vector<char>::size_type border_col = border %  width;
+
+        for (std::vector<char>::size_type str = coord_str; str <= border_str; str++) {
+                for (std::vector<char>::size_type col = coord_col; col <= border_col; col++) {
+                        if (map.mapOfTiles_[str * width + col] == 'g') {
+                                if ((speed_.x > 0) && ((border_col - 1) < col)) {
+                                        speed_.x = 0;
+                                }
+                        }
+                                //if(speed_.x < 0)
+                        }
+        }
+}
+
+void Vessel::update(float time, Map &map) {
+        switch(state_) {
+        case state::RUN:
+                switch(dir_) {
+                case dir::RIGHT:
+                        speed_.x = speedOfRun_;
+                        speed_.y = 0;
+                        break;
+                case dir::LEFT:
+                        speed_.x = -speedOfRun_;
+                        speed_.y = 0;
+                        break;
+                case dir::UP:
+                        speed_.x = 0;
+                        speed_.y = -speedOfRun_;
+                        break;
+                case dir::DOWN:
+                        speed_.x = 0;
+                        speed_.y = speedOfRun_;
+                        break;
+                }
+                break;
+        default:
+                break;
+        }
+
+        interactWithMap(map);
+
+        coord_ += speed_ * time;
+        border_ += speed_ * time;
+        coord_frame_ += speed_ * time;
+
+        speed_ = {0, 0};
+        sprite.setPosition(coord_frame_);
+}
+
 void Vessel::readStateTable() {
         std::ifstream in;
         in.open("data/" + name_ + "/state.dat");
@@ -28,14 +86,17 @@ void Vessel::writeStateTable() {
 void Vessel::initVessel(std::string name, sf::Vector2f coord) {
 	name_ = name;
         coord_ = coord;
+	
+	readSize();
+	
+	coord_frame_ = coord_ - shift_;
+	border_ = coord_ + psize_;
 	speed_ = {0, 0};
 	acel_ = {0, 0};
 
 	dir_ = dir::RIGHT;
 	dir_idle_ = dir_idle::RIGHT;
 	state_ = state::IDLE;	
-	
-	readSize();
 
         loadImageFromFile("images/" + name + "/image.png", image);
         image.createMaskFromColor(sf::Color(255, 255, 255));
@@ -51,18 +112,21 @@ void Vessel::readSize() {
 
         in >> frame_border_.x;
         in >> frame_border_.y;
-	in >> size_.x;
-	in >> size_.y;
+	in >> psize_.x;
+	in >> psize_.y;
         in.close();
 
-	shift_.x = (frame_border_.x - size_.x) / 2;
-	shift_.y = (frame_border_.y - size_.y) / 2;
+	
+	tsize_.x = std::ceil(psize_.x / static_cast<float>(TILE_WIDTH));
+	tsize_.y = std::ceil(psize_.y / static_cast<float>(TILE_HEIGHT));
+	shift_.x = (frame_border_.x - psize_.x) / 2;
+	shift_.y = (frame_border_.y - psize_.y) / 2;
 }
 
 void Vessel::writeSize() const{
         std::ofstream out;
         out.open("data/maps/" + name_ + "/test.dat");
-        out << frame_border_.x << " " << frame_border_.y << " " << size_.x << " " << size_.y << std::endl;
+        out << frame_border_.x << " " << frame_border_.y << " " << psize_.x << " " << psize_.y << std::endl;
         out.close();
 }
 
@@ -92,43 +156,11 @@ void Vessel::setAcel(sf::Vector2f acel) {
 }
 
 sf::Vector2f Vessel::getSize() const {
-        return sf::Vector2f{size_.x, size_.y};
+        return sf::Vector2f{psize_.x, psize_.y};
 }
 
-void Vessel::setSize(sf::Vector2f size) {
-	size_ = size;
-}
-
-void Vessel::update(float time) {
-	switch(state_) {
-	case state::RUN:
-    		switch(dir_) {
-                case dir::RIGHT:
-                        speed_.x = speedOfRun_;
-                        speed_.y = 0;
-                        break;
-                case dir::LEFT:
-                        speed_.x = -speedOfRun_;
-                        speed_.y = 0;
-                        break;
-                case dir::UP:
-                        speed_.x = 0;
-                        speed_.y = -speedOfRun_;
-                        break;
-                case dir::DOWN:
-                        speed_.x = 0;
-                        speed_.y = speedOfRun_;
-                        break;
-       		}
-		break;
-	default:
-		break;
-	}
-
-                coord_.x += speed_.x * time;
-                coord_.y += speed_.y * time;
-                speed_ = {0, 0};
-                sprite.setPosition(coord_);
+void Vessel::setSize(sf::Vector2f psize) {
+	psize_ = psize;
 }
 
 Vessel::~Vessel() {}
@@ -144,13 +176,7 @@ void Person::initPerson(std::string name, sf::Vector2f coord) {
 	
 }
 
-void Person::interactWithMap(Map &map) {
-	std::vector<char>::size_type coord = map.getTileFromCoord(coord_);
-	
-}
-
-
-void Person::control() {
+void Person::control(Camera &camera) {
 
 	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
 		state_ = state::IDLE;
@@ -175,7 +201,7 @@ void Person::control() {
                         frame_ = std::fmod(frame_, run_);
 
                 sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-                //camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
+                camera.setCoordView(border_);
         }
 
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
@@ -188,7 +214,7 @@ void Person::control() {
                         frame_ = std::fmod(frame_, run_);
 
                 sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-                //camera.getCoordView() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
+                camera.setCoordView(border_);
         }
 /*
 

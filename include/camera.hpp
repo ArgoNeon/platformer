@@ -13,12 +13,14 @@ class Camera{
 		sf::Vector2f coord_;
 		sf::Vector2f border_;
 	public:	
+		sf::Vector2f finitCoord(sf::Vector2f coord);
 		void initCamera(sf::Vector2f coord, sf::Vector2f border);
 
-		sf::View getView();
-		void viewMap(float time);
-		void getCoordView(sf::Vector2f coord);
+		sf::View getView() const;
+		void setCoordView(sf::Vector2f coord);
 		
+		void viewMap(float time);
+
 		Camera() {}
 		~Camera() = default;
 };

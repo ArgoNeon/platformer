@@ -9,6 +9,7 @@ class Map{
                 sf::Vector2f pixels_;
                 sf::Vector2f tiles_;	
 		sf::Vector2f hero_coord_;
+		long int width_;		
 	public:
 		std::string name_;
 
@@ -37,10 +38,12 @@ class Map{
 		void setPixels(sf::Vector2f);
 		void setTiles(sf::Vector2f);
 		void setHeroCoord(sf::Vector2f);
+		void setWidth(long int width);
 		
 		sf::Vector2f getHeroCoord() const;
 		sf::Vector2f getPixels() const;
 		sf::Vector2f getTiles() const;
+		long int getWidth() const;
 
 		void drawTiles(sf::RenderWindow &);	
 		

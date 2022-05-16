@@ -5,16 +5,21 @@
 #include <SFML/Audio.hpp>
 
 #include "map.hpp"
+#include "camera.hpp"
 
 #define FRAME_SPEED 0.05
 
 class Vessel {
 	protected:
 		sf::Vector2f coord_;	//coordinate
+		sf::Vector2f border_;
+		sf::Vector2f coord_frame_;
+		sf::Vector2f frame_border_;
+
 		sf::Vector2f speed_;	//speed
 		sf::Vector2f acel_;	//aceleration
-		sf::Vector2f size_;	//size
-		sf::Vector2f frame_border_;
+		sf::Vector2f psize_;	//size in pixels
+		sf::Vector2i tsize_;	//size in tiles
 		sf::Vector2f shift_;
 
 		int idle_;
@@ -79,15 +84,15 @@ class Vessel {
 		sf::Vector2f getSize() const;
                 void setSize(sf::Vector2f size);
 
-		void update(float time);
+		void interactWithMap(Map &map);
+		void update(float time, Map &map);
 };
 
 class Person: public Vessel {
 	private:
 	public:
 		void initPerson(std::string name, sf::Vector2f coord);
-		void interactWithMap(Map &map);
-		void control();
+		void control(Camera &camera);
 		
 		Person() : Vessel() {}
 		~Person() override = default;

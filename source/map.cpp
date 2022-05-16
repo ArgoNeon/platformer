@@ -8,8 +8,11 @@
 #include "../include/functions.hpp"
 
 std::vector<char>::size_type Map::getTileFromCoord(sf::Vector2f coord) {
-	long int width = tiles_.x + 1;
-	return std::vector<char>::size_type {static_cast<std::vector<char>::size_type>((static_cast<long int> (coord.y)) / TILE_HEIGHT * width + ((static_cast<long int> (coord.x)) / TILE_WIDTH))};
+	return std::vector<char>::size_type {static_cast<std::vector<char>::size_type>((static_cast<long int> (coord.y)) / TILE_HEIGHT * width_ + ((static_cast<long int> (coord.x)) / TILE_WIDTH))};
+}
+
+void Map::setWidth(long int width) {
+	width_ = width;
 }
 
 void Map::setPixels(sf::Vector2f pixels) {
@@ -36,9 +39,12 @@ sf::Vector2f Map::getTiles() const {
 	return tiles_;
 }
 
+long int Map::getWidth() const{
+	return width_;
+}
+
 void Map::readMapOfTiles() {
 	char tile;
-	int width = tiles_.x + 1;
 	std::ifstream in;
 
 	in.open("data/maps/" + name_ + "/tiles.dat");
@@ -47,8 +53,8 @@ void Map::readMapOfTiles() {
 
 		if (tile == 'h') {
 			std::vector<char>::size_type k = mapOfTiles_.size();
-			int y = TILE_HEIGHT * (k / width);
-                        int x = TILE_WIDTH * (k % width);
+			int y = TILE_HEIGHT * (k / width_);
+                        int x = TILE_WIDTH * (k % width_);
                         setHeroCoord({static_cast<float> (x), static_cast<float> (y)});
 		}
 	}
@@ -74,6 +80,8 @@ void Map::readSize() {
 
 	tiles_.y = pixels_.y / TILE_HEIGHT;
         tiles_.x = pixels_.x / TILE_WIDTH;
+
+	width_ = static_cast<long int>(tiles_.x) + 1;
 }
 
 void Map::writeSize() const{
@@ -108,7 +116,6 @@ void Map::initMap(std::string name) {
 
 void Map::drawTiles(sf::RenderWindow &window) {
 	int i = 0, j = 0;
-	int width = tiles_.x + 1;
 	sprite_tile.setTextureRect(sf::IntRect(0, 0, TILE_HEIGHT, TILE_WIDTH));
 		
 	for(std::vector<char>::size_type k = 0; k != mapOfTiles_.size(); k++) { 
@@ -116,8 +123,8 @@ void Map::drawTiles(sf::RenderWindow &window) {
 		case '0':
 			break;
 		case 'g':
-			i = k / width;
-			j = k % width;
+			i = k / width_;
+			j = k % width_;
 			sprite_tile.setPosition(j * TILE_WIDTH, i * TILE_HEIGHT);
                 	window.draw(sprite_tile);
 			break;

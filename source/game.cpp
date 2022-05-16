@@ -37,9 +37,8 @@ void Game::start(std::string nameMap) {
         
 	window.setView(camera.getView());
         camera.viewMap(time_);
-	hero.control();
-	//hero.interactWithMap(map);
-        hero.update(time_);
+	hero.control(camera);
+        hero.update(time_, map);
         window.clear();
         window.draw(map.sprite_back);
         map.drawTiles(window);
