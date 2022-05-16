@@ -1,23 +1,16 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <fstream>
-
-const int TILE_HEIGHT = 16;
-const int TILE_WIDTH = 16;
+#define TILE_HEIGHT  16
+#define TILE_WIDTH 16
 
 class Map{
 	private:
-                int pheight_, pwidth_;	//in pixels
-                int theight_, twidth_;	//in tiles
-
+                sf::Vector2f pixels_;
+                sf::Vector2f tiles_;	
+		sf::Vector2f hero_coord_;
 	public:
-		std::string background;
-		std::string tile;
+		std::string name_;
 
 		sf::Image image_back;
 		sf::Image image_tile;
@@ -28,18 +21,31 @@ class Map{
                 sf::Sprite sprite_back;
 		sf::Sprite sprite_tile;
 
-		std::vector<char> mapOfTiles;
-
-		Map(std::string, std::string, int height, int width);	
+		std::vector<char> mapOfTiles_;
 		
-		void readMapOfTiles(std::string);
-		void writeMapOfTiles(std::string);
-		void setPixels(sf::Vector2i);
-		void setTiles(sf::Vector2i);
-		sf::Vector2i getPixels() const;
-		sf::Vector2i getTiles() const;
+		std::vector<char>::size_type getTileFromCoord(sf::Vector2f coord);
+
+		void loadMap();
+		void initMap(std::string name);	
+		
+		void readMapOfTiles();
+		void writeMapOfTiles();
+
+		void readSize();
+		void writeSize() const;
+
+		void setPixels(sf::Vector2f);
+		void setTiles(sf::Vector2f);
+		void setHeroCoord(sf::Vector2f);
+		
+		sf::Vector2f getHeroCoord() const;
+		sf::Vector2f getPixels() const;
+		sf::Vector2f getTiles() const;
 
 		void drawTiles(sf::RenderWindow &);	
+		
+		Map() {}
+		~Map() = default;
 };
 
 #endif//MAP_HPP

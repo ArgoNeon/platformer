@@ -1,19 +1,26 @@
-#ifndef VIEW_HPP
-#define VIEW_HPP
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
 
-#include <SFML/Graphics.hpp>
+#define CAMERA_W 480
+#define CAMERA_W2 240
+#define CAMERA_H 270
+#define CAMERA_H2 120
+#define CAMERA_SPEED 0.4
 
 class Camera{
 	private:
 		sf::View view;
-		float w, h;
-		float speed;
+		sf::Vector2f coord_;
+		sf::Vector2f border_;
 	public:	
-		Camera(float x, float y, float w, float h, float speed, float wind_w, float wind_h);
+		void initCamera(sf::Vector2f coord, sf::Vector2f border);
+
 		sf::View getView();
 		void viewMap(float time);
-		void getCoordinateView(float x,float y);
-
+		void getCoordinateView(sf::Vector2f coord);
+		
+		Camera() {}
+		~Camera() = default;
 };
 
-#endif// VIEW_H
+#endif// CAMERA_H
