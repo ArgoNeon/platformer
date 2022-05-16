@@ -14,6 +14,8 @@ class Vessel {
 		sf::Vector2f speed_;	//speed
 		sf::Vector2f acel_;	//aceleration
 		sf::Vector2f size_;	//size
+		sf::Vector2f frame_border_;
+		sf::Vector2f shift_;
 
 		int idle_;
 		int run_;
@@ -34,6 +36,11 @@ class Vessel {
 			UP,
 			DOWN
 		};
+		
+		enum class dir_idle {
+			RIGHT,
+			LEFT
+		};
 
 		enum class state {
 			IDLE,
@@ -45,6 +52,7 @@ class Vessel {
 		std::string name_;
 
 		dir dir_;
+		dir_idle dir_idle_;
 		state state_;
 
 		sf::Image image;

@@ -17,7 +17,7 @@ class Camera{
 
 		sf::View getView();
 		void viewMap(float time);
-		void getCoordinateView(sf::Vector2f coord);
+		void getCoordView(sf::Vector2f coord);
 		
 		Camera() {}
 		~Camera() = default;

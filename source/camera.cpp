@@ -29,7 +29,7 @@ sf::View Camera::getView(){
 	return view;
 }
 
-void Camera::getCoordinateView(sf::Vector2f coord) {
+void Camera::getCoordView(sf::Vector2f coord) {
 	/*if (coord.x < (CAMERA_W / 2)) 
 		coordx = (CAMERA_W / 2);
 	if (y < (h / 2)) 

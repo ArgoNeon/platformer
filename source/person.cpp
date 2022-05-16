@@ -1,4 +1,5 @@
-#include <SFML/Graphics.hpp>  
+#include <SFML/Graphics.hpp>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -29,6 +30,10 @@ void Vessel::initVessel(std::string name, sf::Vector2f coord) {
         coord_ = coord;
 	speed_ = {0, 0};
 	acel_ = {0, 0};
+
+	dir_ = dir::RIGHT;
+	dir_idle_ = dir_idle::RIGHT;
+	state_ = state::IDLE;	
 	
 	readSize();
 
@@ -44,15 +49,20 @@ void Vessel::readSize() {
         std::ifstream in;
         in.open("data/" + name_ + "/size.dat");
 
-        in >> size_.x;
-        in >> size_.y;
+        in >> frame_border_.x;
+        in >> frame_border_.y;
+	in >> size_.x;
+	in >> size_.y;
         in.close();
+
+	shift_.x = (frame_border_.x - size_.x) / 2;
+	shift_.y = (frame_border_.y - size_.y) / 2;
 }
 
 void Vessel::writeSize() const{
         std::ofstream out;
         out.open("data/maps/" + name_ + "/test.dat");
-        out << size_.x << " " << size_.y <<std::endl;
+        out << frame_border_.x << " " << frame_border_.y << " " << size_.x << " " << size_.y << std::endl;
         out.close();
 }
 
@@ -89,7 +99,37 @@ void Vessel::setSize(sf::Vector2f size) {
 	size_ = size;
 }
 
-void Vessel::update(float time) {}
+void Vessel::update(float time) {
+	switch(state_) {
+	case state::RUN:
+    		switch(dir_) {
+                case dir::RIGHT:
+                        speed_.x = speedOfRun_;
+                        speed_.y = 0;
+                        break;
+                case dir::LEFT:
+                        speed_.x = -speedOfRun_;
+                        speed_.y = 0;
+                        break;
+                case dir::UP:
+                        speed_.x = 0;
+                        speed_.y = -speedOfRun_;
+                        break;
+                case dir::DOWN:
+                        speed_.x = 0;
+                        speed_.y = speedOfRun_;
+                        break;
+       		}
+		break;
+	default:
+		break;
+	}
+
+                coord_.x += speed_.x * time;
+                coord_.y += speed_.y * time;
+                speed_ = {0, 0};
+                sprite.setPosition(coord_);
+}
 
 Vessel::~Vessel() {}
 
@@ -100,6 +140,8 @@ void Person::initPerson(std::string name, sf::Vector2f coord) {
 
 	speedOfRun_ = 0.1;
 	
+	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+	
 }
 
 void Person::interactWithMap(Map &map) {
@@ -109,59 +151,60 @@ void Person::interactWithMap(Map &map) {
 
 
 void Person::control() {
-/*
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-                frame += FRAME_SPEED;
-                if(frame >= run_) 
-                        Frame -= run_;
-                hero.sprite.setTextureRect(sf::IntRect(size_.x * (int(Frame) + 1), 0, -size_.x, size_.y));
-                camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
-        }
+
+	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
+		state_ = state::IDLE;
+		frame_ += FRAME_SPEED;
+		
+		if(frame_ >= idle_)
+                        frame_ = std::fmod(frame_, idle_);
+
+		if (dir_idle_ == dir_idle::RIGHT)
+			sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+		else
+			sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+	}
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-                Frame += FRAME_SPEED;
-                if(frame >= run_)
-                        frame -= run_;
-                hero.sprite.setTextureRect(sf::IntRect(size_.x * int(Frame), 0, HERO_W, HERO_H));
-                camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
+		dir_ = dir::RIGHT;
+		dir_idle_ = dir_idle::RIGHT;
+		state_ = state::RUN;
+                frame_ += FRAME_SPEED;
+
+                if(frame_ >= run_)
+                        frame_ = std::fmod(frame_, run_);
+
+                sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+                //camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
         }
 
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+                dir_ = dir::LEFT;
+		dir_idle_ = dir_idle::LEFT;
+                state_ = state::RUN;
+                frame_ += FRAME_SPEED;
+
+                if(frame_ >= run_) 
+                        frame_ = std::fmod(frame_, run_);
+
+                sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+                //camera.getCoordView() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
+        }
+/*
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+		dir_ = dir::UP;
+		state_ = state::RUN;
+		frame_ += FRAME_SPEED;
                 hero.sprite.setTextureRect(sf::IntRect(0, 0, HERO_W, HERO_H));
                 camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
         }
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+		dir_ = dir::DOWN;
+		state_ = state::RUN;
+		frame_ += FRAME_SPEED;
                 hero.sprite.setTextureRect(sf::IntRect(0, 0, HERO_W, HERO_H));
                 camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
         }*/
 }
-
-/*
-void Person::update(float time) {
-	switch(dir) {
-		case 0:
-			vx = speed;
-			vy = 0;
-			break;
-		case 1:
-			vx = -speed;
-			vy = 0;
-			break;
-		case 2:
-			vx = 0;
-			vy = speed;
-			break;
-		case 3:
-			vx = 0;
-			vy = -speed;
-			break;
-	}
-
-		x += vx * time;
-		y += vy * time;
-		speed = 0;
-		sprite.setPosition(x, y);
-}
-*/
