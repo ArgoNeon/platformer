@@ -74,7 +74,9 @@ class Vessel {
 
 		void readSize();
 		void writeSize() const;
-
+		
+		sf::Vector2f getBorder() const;
+		void setBorder(sf::Vector2f border);
 		sf::Vector2f getCoord() const;
 		void setCoord(sf::Vector2f coord);
 		sf::Vector2f getSpeed() const;
@@ -92,7 +94,7 @@ class Person: public Vessel {
 	private:
 	public:
 		void initPerson(std::string name, sf::Vector2f coord);
-		void control(Camera &camera);
+		void control(float time, Camera &camera);
 		
 		Person() : Vessel() {}
 		~Person() override = default;

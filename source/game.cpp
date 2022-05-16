@@ -18,10 +18,10 @@ void Game::startMusic() {
 
 void Game::start(std::string nameMap) {
         map.initMap(nameMap);
-	
-        camera.initCamera(map.getHeroCoord(), map.getPixels());
 
-        hero.initPerson("hero", map.getHeroCoord());
+	hero.initPerson("hero", map.getHeroCoord());
+	
+        camera.initCamera(hero.getBorder(), map.getPixels());
 
         startMusic();
 
@@ -37,7 +37,7 @@ void Game::start(std::string nameMap) {
         
 	window.setView(camera.getView());
         camera.viewMap(time_);
-	hero.control(camera);
+	hero.control(time_, camera);
         hero.update(time_, map);
         window.clear();
         window.draw(map.sprite_back);

@@ -7,6 +7,7 @@ void Camera::initCamera(sf::Vector2f coord, sf::Vector2f sizeMap) {
 	border_ = {sizeMap.x - static_cast<float>(CAMERA_W2), sizeMap.y - static_cast<float>(CAMERA_H2)};
 	
 	coord_ = finitCoord(coord);
+	border_ = finitCoord(border_);
 	
 	view.reset(sf::FloatRect(0, 0, CAMERA_W, CAMERA_H));
 	view.setCenter(coord_);
@@ -40,7 +41,8 @@ sf::Vector2f Camera::finitCoord(sf::Vector2f coord) {
 }
 
 void Camera::setCoordView(sf::Vector2f coord) {
-        view.setCenter(finitCoord(coord));
+	coord_ = finitCoord(coord);
+        view.setCenter(coord_);
 }
 
 void Camera::viewMap(float time) {
@@ -72,3 +74,20 @@ void Camera::viewMap(float time) {
 		}
 	}
 }
+
+void Camera::setCoord(sf::Vector2f coord) {
+	coord_ = coord;
+}
+                
+void Camera::setBorder(sf::Vector2f border) {
+	border_ = border;
+}
+
+sf::Vector2f Camera::getCoord() const {
+	return coord_;
+}	
+
+sf::Vector2f Camera::getBorder() const {
+	return border_;
+}
+

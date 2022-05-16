@@ -18,6 +18,12 @@ class Camera{
 
 		sf::View getView() const;
 		void setCoordView(sf::Vector2f coord);
+
+		void setCoord(sf::Vector2f coord);
+		void setBorder(sf::Vector2f border);
+
+		sf::Vector2f getCoord() const;
+		sf::Vector2f getBorder() const;
 		
 		void viewMap(float time);
 

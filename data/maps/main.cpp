@@ -7,10 +7,19 @@ int main() {
 	std::ofstream map;
    	map.open("sample.dat");
    	if (map.is_open()) {
-		for (int i = 0; i < 45; i++) {
-			for (int j = 0; j < 400; j++)
+
+		for (int i = 0; i < 5; i++) {
+                        for (int j = 0; j < 400; j++)
+                                map << cg;
+                map << std::endl;
+                }
+
+		for (int i = 5; i < 45; i++) {
+			map << cg;
+			for (int j = 1; j < 399; j++)
 				map << c0;
-		map << std::endl;
+			map << cg;
+			map << std::endl;
 		}
 
 		for (int i = 45; i < 50; i++) {

@@ -6,6 +6,73 @@
 #include "../include/person.hpp"
 #include "../include/functions.hpp"
 
+void Person::control(float time, Camera &camera) {
+
+        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
+                state_ = state::IDLE;
+                frame_ += FRAME_SPEED;
+
+                if(frame_ >= idle_)
+                        frame_ = std::fmod(frame_, idle_);
+
+                if (dir_idle_ == dir_idle::RIGHT)
+                        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+                else
+                        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+        }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+                dir_ = dir::RIGHT;
+                dir_idle_ = dir_idle::RIGHT;
+                state_ = state::RUN;
+                frame_ += FRAME_SPEED;
+
+                if(frame_ >= run_)
+                        frame_ = std::fmod(frame_, run_);
+
+                sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+                camera.setCoordView(border_);
+        }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+                dir_ = dir::LEFT;
+                dir_idle_ = dir_idle::LEFT;
+                state_ = state::RUN;
+                frame_ += FRAME_SPEED;
+
+                if(frame_ >= run_)
+                        frame_ = std::fmod(frame_, run_);
+
+                sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+                camera.setCoordView(border_);
+        }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+		sf::Vector2f camera_coord = camera.getCoord();
+                dir_ = dir::UP;
+
+                if (camera_coord.y > CAMERA_H2) {
+                	camera_coord.y -= CAMERA_SPEED * time;
+              		camera.getView().move(0, -CAMERA_SPEED * time);
+                }
+
+                camera.setCoordView(camera_coord);
+        }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+		sf::Vector2f camera_coord = camera.getCoord();
+                dir_ = dir::DOWN;
+                
+		if (camera_coord.y < border_.y) {
+                	camera_coord.y += CAMERA_SPEED * time;
+                	camera.getView().move(0, CAMERA_SPEED * time);
+                }
+
+                camera.setCoordView(camera_coord);
+        }
+}
+
+
 void Vessel::interactWithMap(Map &map) {
 	long int width = map.getWidth();
         const std::vector<char>::size_type coord = map.getTileFromCoord(coord_);
@@ -16,16 +83,17 @@ void Vessel::interactWithMap(Map &map) {
         const std::vector<char>::size_type border_str = border / width;
         const std::vector<char>::size_type border_col = border %  width;
 
-        for (std::vector<char>::size_type str = coord_str; str <= border_str; str++) {
-                for (std::vector<char>::size_type col = coord_col; col <= border_col; col++) {
+        for (std::vector<char>::size_type str = coord_str; str <= border_str; str++)
+                for (std::vector<char>::size_type col = coord_col; col <= border_col; col++) 
                         if (map.mapOfTiles_[str * width + col] == 'g') {
-                                if ((speed_.x > 0) && ((border_col - 1) < col)) {
+                                if ((speed_.x > 0) && (border_col <= col)) {
                                         speed_.x = 0;
                                 }
-                        }
-                                //if(speed_.x < 0)
-                        }
-        }
+                        
+                                if ((speed_.x < 0) && (coord_col >= col)) {
+					speed_.x = 0;
+				}
+			}
 }
 
 void Vessel::update(float time, Map &map) {
@@ -130,6 +198,13 @@ void Vessel::writeSize() const{
         out.close();
 }
 
+sf::Vector2f Vessel::getBorder() const {
+	return border_;
+}
+
+void Vessel::setBorder(sf::Vector2f border) {
+	border_ = border;
+}
 
 sf::Vector2f Vessel::getCoord() const {
 	return sf::Vector2f{coord_.x, coord_.y};
@@ -174,63 +249,4 @@ void Person::initPerson(std::string name, sf::Vector2f coord) {
 	
 	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
 	
-}
-
-void Person::control(Camera &camera) {
-
-	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
-		state_ = state::IDLE;
-		frame_ += FRAME_SPEED;
-		
-		if(frame_ >= idle_)
-                        frame_ = std::fmod(frame_, idle_);
-
-		if (dir_idle_ == dir_idle::RIGHT)
-			sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-		else
-			sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-	}
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-		dir_ = dir::RIGHT;
-		dir_idle_ = dir_idle::RIGHT;
-		state_ = state::RUN;
-                frame_ += FRAME_SPEED;
-
-                if(frame_ >= run_)
-                        frame_ = std::fmod(frame_, run_);
-
-                sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-                camera.setCoordView(border_);
-        }
-
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-                dir_ = dir::LEFT;
-		dir_idle_ = dir_idle::LEFT;
-                state_ = state::RUN;
-                frame_ += FRAME_SPEED;
-
-                if(frame_ >= run_) 
-                        frame_ = std::fmod(frame_, run_);
-
-                sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-                camera.setCoordView(border_);
-        }
-/*
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		dir_ = dir::UP;
-		state_ = state::RUN;
-		frame_ += FRAME_SPEED;
-                hero.sprite.setTextureRect(sf::IntRect(0, 0, HERO_W, HERO_H));
-                camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
-        }
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		dir_ = dir::DOWN;
-		state_ = state::RUN;
-		frame_ += FRAME_SPEED;
-                hero.sprite.setTextureRect(sf::IntRect(0, 0, HERO_W, HERO_H));
-                camera.getCoordinateView(hero.getCoordinateX() + (HERO_W / 2), hero.getCoordinateY() + (HERO_H / 2));
-        }*/
 }
