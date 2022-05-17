@@ -17,7 +17,8 @@ class Vessel {
 		sf::Vector2f speed_;	//speed
 		sf::Vector2f psize_;	//size in pixels
 		sf::Vector2i tsize_;	//size in tiles
-		sf::Vector2f shift_;
+		sf::Vector2f shiftX_;
+		sf::Vector2f shiftY_;
 		
 		sf::Clock jump_clock_;
                 sf::Time elapsed_;
@@ -36,6 +37,9 @@ class Vessel {
 		int run_;
 		int jump_;
 		int fall_;
+		int attack_;
+		int hurt_;
+		int death_;
 
 		float frame_;
 		float speedOfRun_;
@@ -73,7 +77,10 @@ class Vessel {
 			IDLE,
 			RUN,
 			JUMP,
-			FALL	
+			FALL,
+			ATTACK,
+			HURT,
+			DEATH	
 		};
 
 		std::string name_;

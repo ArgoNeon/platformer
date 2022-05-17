@@ -211,7 +211,7 @@ void Vessel::interactWithMap(Map &map) {
         for (std::vector<char>::size_type str = coord_ld_str_; str <= border_ld_str_; str++)
                 for (std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
                         if (map.mapOfTiles_[str * mapWidth_ + col] == 'g') {
-				//printf("%f %ld %f %ld\n", border_.y, str * TILE_HEIGHT, border_.x, col * TILE_WIDTH);
+				//printf("%f %ld\n", coord_.y, str * TILE_HEIGHT);
                                 if ((speed_.y > 0) && (border_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (border_.y - 0.5 < str * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH)) {
                                         if (!ground)
 						jump_clock_.restart();
@@ -220,7 +220,8 @@ void Vessel::interactWithMap(Map &map) {
                                         onGround_ = true;
                                 }
 
-                                if ((speed_.y < 0) && (coord_ld_str_ == str))
+                                if ((speed_.y < 0) && (coord_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (coord_.y + 0.5 < (str + 1) * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH))
+
                                         speed_.y = 0;
 
 				if (onGround_ && (str < border_ld_str_)) {
@@ -279,6 +280,9 @@ void Vessel::readStateTable() {
 	in >> run_;
 	in >> jump_;
 	in >> fall_;
+	in >> attack_;
+	in >> hurt_;
+	in >> death_;
 
         in.close();
 }
@@ -286,7 +290,7 @@ void Vessel::readStateTable() {
 void Vessel::writeStateTable() {
         std::ofstream out;
         out.open("data/" + name_ + "/testState.dat");
-        out << idle_ << " " << run_ << " " << jump_ << " " << fall_ <<std::endl;
+        out << idle_ << " " << run_ << " " << jump_ << " " << fall_ << " " << attack_ << " " << hurt_ << " " << death_ << std::endl;
         out.close();
 }
 
@@ -297,7 +301,7 @@ void Vessel::initVessel(std::string name, sf::Vector2f coord, long int mapWidth)
 	
 	readProperties();
 	
-	coord_frame_ = coord_ - shift_;
+	coord_frame_ = {coord_.x - shiftX_.x, coord_.y - shiftY_.x};
 	border_ = coord_ + psize_;
 	speed_ = {0, 0};
 
@@ -322,21 +326,22 @@ void Vessel::readProperties() {
 	in >> speedOfJump_;
         in >> frame_border_.x;
         in >> frame_border_.y;
-	in >> psize_.x;
-	in >> psize_.y;
+	in >> shiftX_.x;
+	in >> shiftX_.y;
+	in >> shiftY_.x;
+        in >> shiftY_.y;
         in.close();
 
-	
+	psize_.x = frame_border_.x - shiftX_.x - shiftX_.y;
+	psize_.y = frame_border_.y - shiftY_.x - shiftY_.y;
 	tsize_.x = std::ceil(psize_.x / static_cast<float>(TILE_WIDTH));
 	tsize_.y = std::ceil(psize_.y / static_cast<float>(TILE_HEIGHT));
-	shift_.x = (frame_border_.x - psize_.x) / 2;
-	shift_.y = (frame_border_.y - psize_.y) / 2;
 }
 
 void Vessel::writeProperties() const{
         std::ofstream out;
         out.open("data/maps/" + name_ + "/testProperties.dat");
-        out << acel_ << " " << speedOfRun_ << " " << speedOfJump_ << " " << frame_border_.x << " " << frame_border_.y << " " << psize_.x << " " << psize_.y << std::endl;
+        out << acel_ << " " << speedOfRun_ << " " << speedOfJump_ << std::endl;
         out.close();
 }
 
