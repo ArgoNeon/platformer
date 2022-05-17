@@ -129,6 +129,10 @@ void Map::drawTiles(sf::RenderWindow &window) {
                 	window.draw(sprite_tile);
 			break;
 		case '\n':
+			i = k / width_;
+                        j = k % width_;
+                        sprite_tile.setPosition(j * TILE_WIDTH, i * TILE_HEIGHT);
+                        window.draw(sprite_tile);
                         break;
 		case 'h':
 			break;

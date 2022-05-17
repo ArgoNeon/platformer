@@ -7,46 +7,36 @@
 #include "../include/functions.hpp"
 
 void Person::control(float time, Camera &camera) {
+
 	switch(onGround_) {
 	case true:
-
+		if(isAttack)
+			isAttack = attack(camera);
+		else {
+		
         	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-			idle();
-
+			idle(camera);
+		
        		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			runRight(camera);
 
      		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
 			runLeft(camera);
 
-       		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-			//sf::Vector2f camera_coord = camera.getCoord();
-        	  	dir_attack_ = dir_attack::UP;
-	
-                	/*if (camera_coord.y > CAMERA_H2) {
-                		camera_coord.y -= CAMERA_SPEED * time;
-              			camera.getView().move(0, -CAMERA_SPEED * time);
-               		}
-
-              		 camera.setCoordView(camera_coord);*/
-        	}
-
-        	if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-			//sf::Vector2f camera_coord = camera.getCoord();
-                	dir_attack_ = dir_attack::DOWN;
-                
-			/*if (camera_coord.y < border_.y) {
-                		camera_coord.y += CAMERA_SPEED * time;
-                		camera.getView().move(0, CAMERA_SPEED * time);
-                	}
-
-                	camera.setCoordView(camera_coord);*/
-       		}
+		if(mouse_left_ && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && (attack_clock_.getElapsedTime().asMilliseconds() > 700) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
+			frame_ = 0;
+			mouse_left_ = false;
+			isAttack = true;
+			attack_clock_.restart();
+                        attack(camera);
+		}
 		
-		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
+		if ((space_ && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
+			onGround_ = false;
+			space_ = false;
 			speed_.y = -speedOfJump_;
 			jump(camera);
-			onGround_ = false;
+		}
 		}
 
 		break;
@@ -75,7 +65,54 @@ void Person::control(float time, Camera &camera) {
 	}
 }
 
-void Person::jump(Camera &camera) {
+bool Vessel::attack(Camera &camera) {
+        state_ = state::ATTACK;
+        frame_ += frame_speed_;
+
+        if (frame_ < attack_) {
+
+        	if (dir_ == dir::RIGHT)
+                	setTextureFrameRight();
+        	else
+                	setTextureFrameLeft();
+
+		camera.setCoordView(border_);
+		return true;
+        } else  {
+		camera.setCoordView(border_);
+		return false;
+	}
+}
+
+void Vessel::hurt(Camera & camera) {
+        state_ = state::HURT;
+        frame_ += frame_speed_;
+
+        if(frame_ >= fall_)
+                frame_ = std::fmod(frame_, fall_);
+
+        if (dir_ == dir::RIGHT)
+                setTextureFrameRight();
+        else
+                setTextureFrameLeft();
+	camera.setCoordView(border_);
+}
+
+void Vessel::death(Camera &camera) {
+        state_ = state::DEATH;
+        frame_ += frame_speed_;
+
+        if(frame_ >= fall_)
+                frame_ = std::fmod(frame_, fall_);
+
+        if (dir_ == dir::RIGHT)
+                setTextureFrameRight();
+        else
+                setTextureFrameRight();
+	camera.setCoordView(border_);
+}
+
+void Vessel::jump(Camera &camera) {
         state_ = state::JUMP;
         frame_ += frame_speed_;
 
@@ -83,12 +120,14 @@ void Person::jump(Camera &camera) {
                 frame_ = std::fmod(frame_, jump_);
 	
 	if (dir_ == dir::RIGHT)
-		sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+		setTextureFrameRight();
 	else
-	        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y)); 
+	        setTextureFrameLeft();
+ 
+	camera.setCoordView(border_);
 }
 
-void Person::fall(Camera &camera) {
+void Vessel::fall(Camera &camera) {
         state_ = state::FALL;
         frame_ += frame_speed_;
 
@@ -96,12 +135,14 @@ void Person::fall(Camera &camera) {
                 frame_ = std::fmod(frame_, fall_);
 
 	if (dir_ == dir::RIGHT)
-        	sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+        	setTextureFrameRight();	
 	else 
-		sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+		setTextureFrameLeft();
+
+	camera.setCoordView(border_);
 }
 
-void Person::fallRight(Camera &camera) {
+void Vessel::fallRight(Camera &camera) {
 	dir_ = dir::RIGHT;
         dir_attack_ = dir_attack::RIGHT;
         state_ = state::FALL;
@@ -111,11 +152,11 @@ void Person::fallRight(Camera &camera) {
         if(frame_ >= fall_)
                 frame_ = std::fmod(frame_, fall_);
 
-        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-	camera.setCoordView({border_.x, camera.getCoord().y});
+       	setTextureFrameRight(); 
+	camera.setCoordView(border_);
 }
 
-void Person::fallLeft(Camera &camera) {
+void Vessel::fallLeft(Camera &camera) {
         dir_ = dir::LEFT;
         dir_attack_ = dir_attack::LEFT;
         state_ = state::FALL;
@@ -125,11 +166,11 @@ void Person::fallLeft(Camera &camera) {
         if(frame_ >= fall_)
                 frame_ = std::fmod(frame_, fall_);
 
-        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-        camera.setCoordView({border_.x, camera.getCoord().y});
+        setTextureFrameLeft();
+        camera.setCoordView(border_);
 }
 
-void Person::jumpRight(Camera &camera) {
+void Vessel::jumpRight(Camera &camera) {
 	dir_ = dir::RIGHT;
 	dir_attack_ = dir_attack::RIGHT;
         state_ = state::JUMP;
@@ -139,12 +180,11 @@ void Person::jumpRight(Camera &camera) {
         if(frame_ >= jump_)
                 frame_ = std::fmod(frame_, jump_);
 
-        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
-	camera.setCoordView({border_.x, camera.getCoord().y});
-
+        setTextureFrameRight();
+	camera.setCoordView(border_);
 }
 
-void Person::jumpLeft(Camera &camera) {
+void Vessel::jumpLeft(Camera &camera) {
 	dir_ = dir::LEFT;
 	dir_attack_ = dir_attack::LEFT;
         state_ = state::JUMP;
@@ -154,11 +194,11 @@ void Person::jumpLeft(Camera &camera) {
         if(frame_ >= jump_)
                 frame_ = std::fmod(frame_, jump_);
 
-        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-	camera.setCoordView({border_.x, camera.getCoord().y});
+        setTextureFrameLeft();
+	camera.setCoordView(border_);
 }
 
-void Person::idle() {
+void Vessel::idle(Camera &camera) {
 	state_ = state::IDLE;
         frame_ += frame_speed_;
 
@@ -166,12 +206,13 @@ void Person::idle() {
         	frame_ = std::fmod(frame_, idle_);
 
 	if (dir_ == dir::RIGHT)
-       		sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+       		setTextureFrameRight();
   	else
-        	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+        	setTextureFrameLeft();
+	camera.setCoordView(border_);
 }
 
-void Person::runRight(Camera &camera) {
+void Vessel::runRight(Camera &camera) {
 	dir_ = dir::RIGHT;
         dir_attack_ = dir_attack::RIGHT;
         state_ = state::RUN;
@@ -180,11 +221,11 @@ void Person::runRight(Camera &camera) {
      	if(frame_ >= run_)
         	frame_ = std::fmod(frame_, run_);
 
-        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+        setTextureFrameRight();
  	camera.setCoordView(border_);
 }
 
-void Person::runLeft(Camera &camera) {
+void Vessel::runLeft(Camera &camera) {
 	dir_ = dir::LEFT;
 	dir_attack_ = dir_attack::LEFT;
         state_ = state::RUN;
@@ -193,13 +234,22 @@ void Person::runLeft(Camera &camera) {
         if(frame_ >= run_)
         	frame_ = std::fmod(frame_, run_);
 
-   	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+   	setTextureFrameLeft();
        	camera.setCoordView(border_);
 
 }
 
+bool Vessel::checkRoof(std::vector<char>::size_type &str, std::vector<char>::size_type &col) {
+	return ((speed_.y < 0) && (coord_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (coord_.y + 0.5 < (str + 1) * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH));
+}
+                
+bool Vessel::checkFloor(std::vector<char>::size_type &str, std::vector<char>::size_type &col) {
+	return ((speed_.y > 0) && (border_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (border_.y - 0.5 < str * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH));
+}
+
 void Vessel::interactWithMap(Map &map) {
-	bool ground = onGround_;
+	int counter = 0;
+
         coord_ld_ = map.getTileFromCoord(coord_);
         coord_ld_str_ = coord_ld_ / mapWidth_;
         coord_ld_col_ = coord_ld_ %  mapWidth_;
@@ -208,20 +258,25 @@ void Vessel::interactWithMap(Map &map) {
         border_ld_str_ = border_ld_ / mapWidth_;
         border_ld_col_ = border_ld_ %  mapWidth_;
 
+	for(std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
+		if (map.mapOfTiles_[border_ld_str_ * mapWidth_ + col] == 'g')
+			counter++;
+
+	if (counter == 0)
+		onGround_ = false;
+
         for (std::vector<char>::size_type str = coord_ld_str_; str <= border_ld_str_; str++)
                 for (std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
                         if (map.mapOfTiles_[str * mapWidth_ + col] == 'g') {
-				//printf("%f %ld\n", coord_.y, str * TILE_HEIGHT);
-                                if ((speed_.y > 0) && (border_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (border_.y - 0.5 < str * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH)) {
-                                        if (!ground)
+                                if ((speed_.y > 0) && (border_ld_str_ == str)) {
+                                        if (!onGround_)
 						jump_clock_.restart();
 
 					speed_.y = 0;
                                         onGround_ = true;
-                                }
+                                }  
 
-                                if ((speed_.y < 0) && (coord_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (coord_.y + 0.5 < (str + 1) * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH))
-
+                                if (checkRoof(str, col))
                                         speed_.y = 0;
 
 				if (onGround_ && (str < border_ld_str_)) {
@@ -253,6 +308,9 @@ void Vessel::update(float time, Map &map) {
                 break;
 	case state::FALL:
 		break;	
+	case state::ATTACK:
+		setSpeed({0, 0});
+		break;
 	default:
 		break;	
         }
@@ -270,6 +328,14 @@ void Vessel::update(float time, Map &map) {
         coord_frame_ += speed_ * time;
 
         sprite.setPosition(coord_frame_);
+}
+
+void Person::resetMouseLeft() {
+	mouse_left_ = true;
+}
+
+void Person::resetSpace() {
+	space_ = true;
 }
 
 void Vessel::readStateTable() {
@@ -382,6 +448,14 @@ sf::Vector2f Vessel::getSize() const {
 
 void Vessel::setSize(sf::Vector2f psize) {
 	psize_ = psize;
+}
+
+void Vessel::setTextureFrameRight() {
+	sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+}
+
+void Vessel::setTextureFrameLeft() {
+	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
 }
 
 Vessel::~Vessel() {}

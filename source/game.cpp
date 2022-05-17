@@ -31,8 +31,15 @@ void Game::start(std::string nameMap) {
         time_ = time_/1000;
 
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
+            	if (event.type == sf::Event::Closed)
+                	window.close();
+	
+	        if ((event.type == sf::Event::MouseButtonReleased) && (event.mouseButton.button == sf::Mouse::Left))
+        	        hero.resetMouseLeft();
+	
+       		if ((event.type == sf::Event::KeyReleased) && (event.key.code == sf::Keyboard::Space))
+                	hero.resetSpace();
+
         }
         
 	window.setView(camera.getView());
