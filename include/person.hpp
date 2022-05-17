@@ -18,7 +18,10 @@ class Vessel {
 		sf::Vector2f psize_;	//size in pixels
 		sf::Vector2i tsize_;	//size in tiles
 		sf::Vector2f shift_;
-
+		
+		sf::Clock jump_clock_;
+                sf::Time elapsed_;
+		
 		long int mapWidth_;
         	std::vector<char>::size_type coord_ld_;
 		std::vector<char>::size_type coord_ld_str_;
@@ -36,6 +39,7 @@ class Vessel {
 
 		float frame_;
 		float speedOfRun_;
+		float speedOfJump_;
 		float acel_;
 		const float frame_speed_ = 0.04;
 		
