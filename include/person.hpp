@@ -15,10 +15,19 @@ class Vessel {
 		sf::Vector2f frame_border_;
 
 		sf::Vector2f speed_;	//speed
-		sf::Vector2f acel_;	//aceleration
 		sf::Vector2f psize_;	//size in pixels
 		sf::Vector2i tsize_;	//size in tiles
 		sf::Vector2f shift_;
+
+		long int mapWidth_;
+        	std::vector<char>::size_type coord_ld_;
+		std::vector<char>::size_type coord_ld_str_;
+        	std::vector<char>::size_type coord_ld_col_;
+
+        	std::vector<char>::size_type border_ld_;
+        	std::vector<char>::size_type border_ld_str_;
+        	std::vector<char>::size_type border_ld_col_;
+
 
 		int idle_;
 		int run_;
@@ -26,24 +35,32 @@ class Vessel {
 		int fall_;
 
 		float frame_;
-		float speedOfRun_ = 0.08;
+		float speedOfRun_;
+		float acel_;
 		const float frame_speed_ = 0.04;
 		
 		bool onGround_;
+
+		void readProperties();
+		void readStateTable();
+		
+		void interactWithMap(Map &map);
+
+		void initVessel(std::string name, sf::Vector2f coord, long int mapWidth);
 	public:
 		enum class soul {
 			PERSON,
 			IMPERSON
 		};
 
-		enum class dir {
+		enum class dir_attack {
 			RIGHT,
 			LEFT,
 			UP,
 			DOWN
 		};
 		
-		enum class dir_idle {
+		enum class dir {
 			RIGHT,
 			LEFT
 		};
@@ -58,23 +75,18 @@ class Vessel {
 		std::string name_;
 
 		dir dir_;
-		dir_idle dir_idle_;
+		dir_attack dir_attack_;
 		state state_;
 
 		sf::Image image;
 		sf::Texture texture;
 		sf::Sprite sprite;
-		
-		void readStateTable();
-		void writeStateTable();
-	
-		void initVessel(std::string name, sf::Vector2f coord);
-		
+
 		Vessel() {}
 		virtual ~Vessel() = 0;
 
-		void readSize();
-		void writeSize() const;
+		void writeProperties() const;
+		void writeStateTable();
 		
 		sf::Vector2f getBorder() const;
 		void setBorder(sf::Vector2f border);
@@ -82,25 +94,28 @@ class Vessel {
 		void setCoord(sf::Vector2f coord);
 		sf::Vector2f getSpeed() const;
                 void setSpeed(sf::Vector2f speed);
-		sf::Vector2f getAcel() const;
-                void setAcel(sf::Vector2f acel);
 		sf::Vector2f getSize() const;
                 void setSize(sf::Vector2f size);
 
-		void interactWithMap(Map &map);
 		void update(float time, Map &map);
 };
 
 class Person: public Vessel {
 	private:
+		void idle();
+                void runRight(Camera &camera);
+                void runLeft(Camera &camera);
+		void run(Camera &camera);
+		void jump(Camera &camera);
+                void jumpRight(Camera &camera);
+		void jumpLeft(Camera &camera);
+		void fall(Camera &camera);
+		void fallRight(Camera &camera);
+		void fallLeft(Camera &camera);
 	public:
-		void initPerson(std::string name, sf::Vector2f coord);
+		void initPerson(std::string name, sf::Vector2f coord, long int mapWidth);
 		void control(float time, Camera &camera);
 
-		void idle();
-		void runRight(Camera &camera);
-		void runLeft(Camera &camera);
-		
 		Person() : Vessel() {}
 		~Person() override = default;
 		
@@ -108,9 +123,9 @@ class Person: public Vessel {
 
 class Imperson: public Vessel {
 	private:
-
 	public:
-		
+		Imperson() : Vessel() {}
+                ~Imperson() override = default;
 };
 
 #endif //PERSON_CPP

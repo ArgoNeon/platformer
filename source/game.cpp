@@ -19,7 +19,7 @@ void Game::startMusic() {
 void Game::start(std::string nameMap) {
         map.initMap(nameMap);
 
-	hero.initPerson("hero", map.getHeroCoord());
+	hero.initPerson("hero", map.getHeroCoord(), map.getWidth());
 	
         camera.initCamera(hero.getBorder(), map.getPixels());
 

@@ -7,39 +7,155 @@
 #include "../include/functions.hpp"
 
 void Person::control(float time, Camera &camera) {
+	switch(onGround_) {
+	case true:
 
-        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-		idle();
+        	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
+			idle();
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		runRight(camera);
+       		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			runRight(camera);
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
-		runLeft(camera);
+     		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
+			runLeft(camera);
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		sf::Vector2f camera_coord = camera.getCoord();
-                dir_ = dir::UP;
+       		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+			//sf::Vector2f camera_coord = camera.getCoord();
+        	  	dir_attack_ = dir_attack::UP;
+	
+                	/*if (camera_coord.y > CAMERA_H2) {
+                		camera_coord.y -= CAMERA_SPEED * time;
+              			camera.getView().move(0, -CAMERA_SPEED * time);
+               		}
 
-                if (camera_coord.y > CAMERA_H2) {
-                	camera_coord.y -= CAMERA_SPEED * time;
-              		camera.getView().move(0, -CAMERA_SPEED * time);
-                }
+              		 camera.setCoordView(camera_coord);*/
+        	}
 
-                camera.setCoordView(camera_coord);
-        }
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		sf::Vector2f camera_coord = camera.getCoord();
-                dir_ = dir::DOWN;
+        	if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+			//sf::Vector2f camera_coord = camera.getCoord();
+                	dir_attack_ = dir_attack::DOWN;
                 
-		if (camera_coord.y < border_.y) {
-                	camera_coord.y += CAMERA_SPEED * time;
-                	camera.getView().move(0, CAMERA_SPEED * time);
-                }
+			/*if (camera_coord.y < border_.y) {
+                		camera_coord.y += CAMERA_SPEED * time;
+                		camera.getView().move(0, CAMERA_SPEED * time);
+                	}
 
-                camera.setCoordView(camera_coord);
-        }
+                	camera.setCoordView(camera_coord);*/
+       		}
+		
+		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_)) {
+			speed_.y = -1.5;
+			jump(camera);
+			onGround_ = false;
+		}
+
+		break;
+	case false:
+		if (speed_.y > 0) {
+ 
+			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
+                	        fall(camera);
+		
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                        	fallRight(camera);
+
+                	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                        	fallLeft(camera);
+		} else {
+			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
+                                jump(camera);
+			
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                                jumpRight(camera);
+
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                                jumpLeft(camera);
+		}
+		break;	
+	}
+}
+
+void Person::jump(Camera &camera) {
+        state_ = state::JUMP;
+        frame_ += frame_speed_;
+
+        if(frame_ >= jump_)
+                frame_ = std::fmod(frame_, jump_);
+	
+	if (dir_ == dir::RIGHT)
+		sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+	else
+	        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y)); 
+}
+
+void Person::fall(Camera &camera) {
+        state_ = state::FALL;
+        frame_ += frame_speed_;
+
+        if(frame_ >= fall_)
+                frame_ = std::fmod(frame_, fall_);
+
+	if (dir_ == dir::RIGHT)
+        	sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+	else 
+		sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+        camera.setCoordView(border_);
+}
+
+void Person::fallRight(Camera &camera) {
+	dir_ = dir::RIGHT;
+        dir_attack_ = dir_attack::RIGHT;
+        state_ = state::FALL;
+        frame_ += frame_speed_;
+	speed_.x = speedOfRun_;
+
+        if(frame_ >= fall_)
+                frame_ = std::fmod(frame_, fall_);
+
+        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+        camera.setCoordView(border_);
+}
+
+void Person::fallLeft(Camera &camera) {
+        dir_ = dir::LEFT;
+        dir_attack_ = dir_attack::LEFT;
+        state_ = state::FALL;
+        frame_ += frame_speed_;
+	speed_.x = -speedOfRun_;
+
+        if(frame_ >= fall_)
+                frame_ = std::fmod(frame_, fall_);
+
+        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+        camera.setCoordView(border_);
+}
+
+void Person::jumpRight(Camera &camera) {
+	dir_ = dir::RIGHT;
+	dir_attack_ = dir_attack::RIGHT;
+        state_ = state::JUMP;
+        frame_ += frame_speed_;
+	speed_.x = speedOfRun_;
+
+        if(frame_ >= jump_)
+                frame_ = std::fmod(frame_, jump_);
+
+        sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+        camera.setCoordView(border_);
+}
+
+void Person::jumpLeft(Camera &camera) {
+	dir_ = dir::LEFT;
+	dir_attack_ = dir_attack::LEFT;
+        state_ = state::JUMP;
+        frame_ += frame_speed_;
+	speed_.x = -speedOfRun_;
+
+        if(frame_ >= jump_)
+                frame_ = std::fmod(frame_, jump_);
+
+        sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
+        camera.setCoordView(border_);
 }
 
 void Person::idle() {
@@ -49,16 +165,15 @@ void Person::idle() {
 	if(frame_ >= idle_)
         	frame_ = std::fmod(frame_, idle_);
 
-	if (dir_idle_ == dir_idle::RIGHT)
+	if (dir_ == dir::RIGHT)
        		sprite.setTextureRect(sf::IntRect(frame_border_.x * static_cast<int>(frame_), frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
   	else
         	sprite.setTextureRect(sf::IntRect(frame_border_.x * (static_cast<int>(frame_) + 1), frame_border_.y * static_cast<int>(state_), -frame_border_.x, frame_border_.y));
-
 }
 
 void Person::runRight(Camera &camera) {
 	dir_ = dir::RIGHT;
-        dir_idle_ = dir_idle::RIGHT;
+        dir_attack_ = dir_attack::RIGHT;
         state_ = state::RUN;
         frame_ += frame_speed_;
 
@@ -71,7 +186,7 @@ void Person::runRight(Camera &camera) {
 
 void Person::runLeft(Camera &camera) {
 	dir_ = dir::LEFT;
-	dir_idle_ = dir_idle::LEFT;
+	dir_attack_ = dir_attack::LEFT;
         state_ = state::RUN;
         frame_ += frame_speed_;
 
@@ -84,78 +199,70 @@ void Person::runLeft(Camera &camera) {
 }
 
 void Vessel::interactWithMap(Map &map) {
-	long int width = map.getWidth();
-        const std::vector<char>::size_type coord = map.getTileFromCoord(coord_);
-        const std::vector<char>::size_type coord_str = coord / width;
-        const std::vector<char>::size_type coord_col = coord %  width;
+        coord_ld_ = map.getTileFromCoord(coord_);
+        coord_ld_str_ = coord_ld_ / mapWidth_;
+        coord_ld_col_ = coord_ld_ %  mapWidth_;
 
-        const std::vector<char>::size_type border = map.getTileFromCoord(border_);
-        const std::vector<char>::size_type border_str = border / width;
-        const std::vector<char>::size_type border_col = border %  width;
+        border_ld_ = map.getTileFromCoord(border_);
+        border_ld_str_ = border_ld_ / mapWidth_;
+        border_ld_col_ = border_ld_ %  mapWidth_;
 
-        for (std::vector<char>::size_type str = coord_str; str <= border_str; str++)
-                for (std::vector<char>::size_type col = coord_col; col <= border_col; col++) 
-                        if (map.mapOfTiles_[str * width + col] == 'g') {
-				if ((speed_.y > 0) && (border_str == str)) {
+        for (std::vector<char>::size_type str = coord_ld_str_; str <= border_ld_str_; str++)
+                for (std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
+                        if (map.mapOfTiles_[str * mapWidth_ + col] == 'g') {
+                                if ((speed_.y > 0) && (border_ld_str_ == str)) {
+					coord_.y += 1.0;
                                         speed_.y = 0;
-					onGround_ = true;
-				}
+                                        onGround_ = true;
+                                }
 
-				if ((speed_.y < 0) && (coord_str == str)) {
+                                if ((speed_.y < 0) && (coord_ld_str_ == str))
                                         speed_.y = 0;
-                                        onGround_ = false;
-				}
 
-				if (onGround_ && (str < border_str)) {
-					if ((speed_.x > 0) && (border_col == col))
-                                        	speed_.x = 0;
-                        
-                                	if ((speed_.x < 0) && (coord_col == col))
-                                        	speed_.x = 0;
-				} 
+				if (onGround_ && (str < border_ld_str_)) {
+					if ((speed_.x > 0) && (border_ld_col_ == col))
+                                       		speed_.x = -0.0001;
 
-                                if ((speed_.y < 0) && (coord_str == str)) {
-                                        speed_.y = 0;
-					onGround_ = false;
+                                	if ((speed_.x < 0) && (coord_ld_col_ == col))
+                                        	speed_.x = 0.0001;
+				} else if (!onGround_) {
+					if ((speed_.x > 0) && (border_ld_col_ == col))
+                                 	       speed_.x = -0.0001;
+
+                              		if ((speed_.x < 0) && (coord_ld_col_ == col))
+                                        	speed_.x = 0.0001;
 				}
-			}
+				}
 }
 
 void Vessel::update(float time, Map &map) {
         switch(state_) {
+	case state::IDLE:
+		setSpeed({0, 0});
+		break;
         case state::RUN:
-                switch(dir_) {
-                case dir::RIGHT:
-                        speed_.x = speedOfRun_;
-                        speed_.y = 0;
-                        break;
-                case dir::LEFT:
-                        speed_.x = -speedOfRun_;
-                        speed_.y = 0;
-                        break;
-                case dir::UP:
-                        break;
-                case dir::DOWN:
-                        break;
-                }
+                setSpeed({speedOfRun_, 0});
                 break;
-        default:
+        case state::JUMP:
                 break;
+	case state::FALL:
+		break;	
+	default:
+		break;	
         }
 	
 	if (speed_.y < speedOfRun_) {
-		speed_.y += acel_.y * pow(time, 2) / 2.0;
+		speed_.y += acel_ * time;
 		if (speed_.y > speedOfRun_)
 			speed_.y = speedOfRun_;
 	}
 
-        interactWithMap(map);
+	interactWithMap(map);
 
         coord_ += speed_ * time;
         border_ += speed_ * time;
         coord_frame_ += speed_ * time;
 
-        speed_ = {0, 0};
         sprite.setPosition(coord_frame_);
 }
 
@@ -173,24 +280,24 @@ void Vessel::readStateTable() {
 
 void Vessel::writeStateTable() {
         std::ofstream out;
-        out.open("data/" + name_ + "/test.dat");
+        out.open("data/" + name_ + "/testState.dat");
         out << idle_ << " " << run_ << " " << jump_ << " " << fall_ <<std::endl;
         out.close();
 }
 
-void Vessel::initVessel(std::string name, sf::Vector2f coord) {
+void Vessel::initVessel(std::string name, sf::Vector2f coord, long int mapWidth) {
 	name_ = name;
         coord_ = coord;
+	mapWidth_ = mapWidth;
 	
-	readSize();
+	readProperties();
 	
 	coord_frame_ = coord_ - shift_;
 	border_ = coord_ + psize_;
 	speed_ = {0, 0};
-	acel_ = {0, 0.5};
 
 	dir_ = dir::RIGHT;
-	dir_idle_ = dir_idle::RIGHT;
+	dir_attack_ = dir_attack::RIGHT;
 	state_ = state::IDLE;	
 
         loadImageFromFile("images/" + name + "/image.png", image);
@@ -201,10 +308,12 @@ void Vessel::initVessel(std::string name, sf::Vector2f coord) {
 	readStateTable();
 };
 
-void Vessel::readSize() {
+void Vessel::readProperties() {
         std::ifstream in;
-        in.open("data/" + name_ + "/size.dat");
-
+        in.open("data/" + name_ + "/properties.dat");
+	
+	in >> acel_;
+	in >> speedOfRun_;
         in >> frame_border_.x;
         in >> frame_border_.y;
 	in >> psize_.x;
@@ -218,10 +327,10 @@ void Vessel::readSize() {
 	shift_.y = (frame_border_.y - psize_.y) / 2;
 }
 
-void Vessel::writeSize() const{
+void Vessel::writeProperties() const{
         std::ofstream out;
-        out.open("data/maps/" + name_ + "/test.dat");
-        out << frame_border_.x << " " << frame_border_.y << " " << psize_.x << " " << psize_.y << std::endl;
+        out.open("data/maps/" + name_ + "/testProperties.dat");
+        out << acel_ << " " << speedOfRun_ << " " << frame_border_.x << " " << frame_border_.y << " " << psize_.x << " " << psize_.y << std::endl;
         out.close();
 }
 
@@ -246,15 +355,14 @@ sf::Vector2f Vessel::getSpeed() const {
 }
 
 void Vessel::setSpeed(sf::Vector2f speed) {
-	speed_ = speed;
-}
-
-sf::Vector2f Vessel::getAcel() const {
-        return sf::Vector2f{acel_.x, acel_.y};
-}
-
-void Vessel::setAcel(sf::Vector2f acel) {
-	acel_ = acel;
+        switch(dir_) {
+                case dir::RIGHT:
+                        speed_ = speed;
+                        break;
+                case dir::LEFT:
+                        speed_ = {-speed.x, speed.y};
+                        break;
+        }
 }
 
 sf::Vector2f Vessel::getSize() const {
@@ -267,8 +375,8 @@ void Vessel::setSize(sf::Vector2f psize) {
 
 Vessel::~Vessel() {}
 
-void Person::initPerson(std::string name, sf::Vector2f coord) {
-	initVessel(name, coord);
+void Person::initPerson(std::string name, sf::Vector2f coord, long int mapWidth) {
+	initVessel(name, coord, mapWidth);
 
 	soul::PERSON;
 	
