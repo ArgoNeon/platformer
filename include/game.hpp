@@ -22,7 +22,7 @@ class Game {
 
         Camera camera;
 	Map map;
-        Person hero;
+        Person *hero;
 
 	std::list<Imperson *> enemies_list_;
 
@@ -30,13 +30,15 @@ class Game {
 	float Frame_;
 
 	void startMusic();
+	Person *newSoul(Map &map);
 	void initImpersonList(Map &map);
+	void endGame();
+	void drawEnemies();
+        void controlEnemies();
+        void updateEnemies(Map &map);
+        void interactSouls();
 
 	public:
-	void drawEnemies();
-	void controlEnemies();
-	void updateEnemies(Map &map);
-	void interactSouls(); 
 	void start(std::string nameMap);
 
 	Game();

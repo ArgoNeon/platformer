@@ -23,6 +23,7 @@ class Vessel {
 		sf::Event event_;
 			
 		sf::Clock jump_clock_;
+		sf::Clock hurt_clock_;
 		sf::Clock attack_clock_;
                 sf::Time elapsed_;
 		
@@ -57,7 +58,9 @@ class Vessel {
 		bool hit_ally_ = false;
 		bool hit_enemy_ = false;
 		bool onGround_ = false;
-		bool isAttack = false;
+		bool isAttack_ = false;
+		bool isHurt_ = false;
+		bool isDeath_ = false;
 		bool life_ = true;
 
 		void readProperties();
@@ -88,8 +91,8 @@ class Vessel {
                 void fallRight();
                 void fallLeft();
 		bool attack();
-		void hurt();
-		void death();
+		bool hurt();
+		bool death();
 
 	public:
 		enum class soul {

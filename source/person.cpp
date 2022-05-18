@@ -6,12 +6,34 @@
 #include "../include/person.hpp"
 #include "../include/functions.hpp"
 
-void Person::control(float time, Camera &camera) {
+void Person::control(float time, Camera &camera) {	
+	if (life_ == true) {
+	
+	/*if (hit_enemy_ && hurt_clock_.getElapsedTime().asMilliseconds() > 500) {
+                hurt_clock_.restart();
+                isHurt_ = true;
+                hit_enemy_ = false;
+        }*/
+	
 	switch(onGround_) {
 	case true:
-		if(isAttack) {
-			isAttack = attack();
+		if(isAttack_ || isHurt_) {
+		if(isAttack_) {
+			isAttack_ = attack();
 			camera.setCoordView(border_);
+		}
+		
+		if(isHurt_ && (hitpoints_ > 0)) {
+                        isHurt_ = hurt();
+                        camera.setCoordView(border_);
+                }
+		
+		if((isHurt_ && (hitpoints_ <= 0)) || (isDeath_)) {
+			life_ = false;
+			isDeath_ = death();
+                        camera.setCoordView(border_);
+                }
+
 		} else {
 		
         	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
@@ -32,7 +54,7 @@ void Person::control(float time, Camera &camera) {
 		if(mouse_left_ && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && (attack_clock_.getElapsedTime().asMilliseconds() > 700) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
 			frame_ = 0;
 			mouse_left_ = false;
-			isAttack = true;
+			isAttack_ = true;
 			attack_clock_.restart();
                         attack();
 			camera.setCoordView(border_);
@@ -82,19 +104,27 @@ void Person::control(float time, Camera &camera) {
 			}
 		}
 		break;	
+		} } else {
+		frame_ = death_ - 1;
+		setTextureFrameRight();
 	}
 }
 
 void Imperson::control(float time) {
+	prevdir_ = dir_;
 
         switch(onGround_) {
         case true:
-               /* if(isAttack)
-                        isAttack = attack(camera);
-                else {*/
+               if(isAttack_)
+                        isAttack_ = attack();
+                else {
+		if (attack_clock_.getElapsedTime().asMilliseconds() <= 700)
+			idle();
+		
+		else {
 		if (hit_wall_ || hit_ally_ || hit_cliff_) {
+			//printf("hit:%d %d %d prd %d d %d\n", hit_wall_, hit_ally_, hit_cliff_, prevdir_, dir_);
 			hit_ally_ = false;
-			prevdir_ = dir_;
 
 			if(dir_ == dir::RIGHT)
 				dir_ = dir::LEFT;
@@ -102,70 +132,63 @@ void Imperson::control(float time) {
 				dir_ = dir::RIGHT;
 		}
 
+		if ((hit_enemy_) && ((attack_clock_.getElapsedTime().asMilliseconds() > 700))) {
+			frame_ = 0;
+			hit_enemy_ = false;
+			isAttack_ = true;
+                        attack_clock_.restart();
+                        attack();
+		}
+
                 if(dir_ == dir::RIGHT)
                         runRight();
 		else
 			runLeft();
-
-                /*if(0)
-                        runRight(camera);
-
-                if(0)
-                        runLeft(camera);
-
-                if(mouse_left_ && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && (attack_clock_.getElapsedTime().asMilliseconds() > 700) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
-                        frame_ = 0;
-                        mouse_left_ = false;
-                        isAttack = true;
-                        attack_clock_.restart();
-                        attack(camera);
-                }
-
-                if ((space_ && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
-                        onGround_ = false;
-                        space_ = false;
-                        speed_.y = -speedOfJump_;
-                        jump(camera);
-                }
-                }
-*/
-                break;
+		}
+		}
 
         case false:
                 if (speed_.y > 0) 
-                        if(1)
-                                fall();
-/*
-                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-                                fallRight(camera);
-
-                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-                                fallLeft(camera);
-                } else {
-                        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-                                jump(camera);
-
-                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-                                jumpRight(camera);
-
-                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-                                jumpLeft(camera);
-                }*/
-                break;
-        }
+			fall();
+	break;
+	}
 }
 
 void Vessel::interactWithAnother(Vessel *another) {
 	if (soul_ == another->soul_) {
 	if((dir_ == dir::RIGHT) && (border_.x >= another->coord_.x) && (coord_.x <= another->coord_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
-		speed_.x = -speedOfRun_;
+		speed_.x = 0;
 		hit_ally_ = true;
 	}
 	
 	if((dir_ == dir::LEFT) && (coord_.x <= another->border_.x) && (border_.x >= another->border_.x) && (border_.y >= another->border_.y) && (coord_.y <= another->border_.y)) {
-		speed_.x = speedOfRun_;
+		speed_.x = 0;
                 hit_ally_ = true;
 	}	
+	} else {
+	if (another->soul_ == soul::PERSON) {
+	if (dir_ == dir::RIGHT) {
+		if((border_.x >= another->coord_.x) && (coord_.x <= another->coord_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
+			//printf("%d %d\n", border_ld_str_, border_ld_col_);
+			hit_enemy_ = true;
+       		}
+		if ((coord_.x <= another->border_.x) && (border_.x >= another->border_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
+			dir_ = dir::LEFT;
+			hit_enemy_ = true;			
+		}
+	}
+	
+	if (dir_ == dir::LEFT) {
+                if((border_.x >= another->coord_.x) && (coord_.x <= another->coord_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
+                        //printf("%d %d\n", border_ld_str_, border_ld_col_);
+			dir_ = dir::RIGHT;
+                        hit_enemy_ = true;
+                }
+                if ((coord_.x <= another->border_.x) && (border_.x >= another->border_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
+                        hit_enemy_ = true;
+                }
+        }
+	}
 	}
 }
 
@@ -185,30 +208,38 @@ bool Vessel::attack() {
 		return false;
 }
 
-void Vessel::hurt() {
+bool Vessel::hurt() {
         state_ = state::HURT;
         frame_ += frame_speed_;
 
-        if(frame_ >= fall_)
-                frame_ = std::fmod(frame_, fall_);
+	if (frame_ < hurt_) {
 
-        if (dir_ == dir::RIGHT)
-                setTextureFrameRight();
-        else
-                setTextureFrameLeft();
+                if (dir_ == dir::RIGHT)
+                        setTextureFrameRight();
+                else
+                        setTextureFrameLeft();
+
+                return true;
+        } else
+                return false;
+
 }
 
-void Vessel::death() {
+bool Vessel::death() {
         state_ = state::DEATH;
         frame_ += frame_speed_;
 
-        if(frame_ >= fall_)
-                frame_ = std::fmod(frame_, fall_);
+        if (frame_ < death_) {
 
-        if (dir_ == dir::RIGHT)
-                setTextureFrameRight();
-        else
-                setTextureFrameRight();
+                if (dir_ == dir::RIGHT)
+                        setTextureFrameRight();
+                else
+                        setTextureFrameLeft();
+
+                return true;
+        } else
+                return false;
+
 }
 
 void Vessel::jump() {
@@ -428,6 +459,9 @@ void Vessel::update(float time, Map &map) {
 	case state::FALL:
 		break;	
 	case state::ATTACK:
+		setSpeed({0, 0});
+		break;
+	case state::HURT:
 		setSpeed({0, 0});
 		break;
 	default:

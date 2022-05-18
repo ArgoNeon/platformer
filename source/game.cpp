@@ -12,7 +12,7 @@ void Game::initImpersonList(Map &map) {
 	for (std::vector<sf::Vector2f>::size_type k = 0; k < map.enemies_coord_.size(); k++) {
 		Imperson *imperson = new Imperson();
 		imperson->initImperson("slime", map.enemies_coord_[k], map.getWidth());
-		enemies_list_.push_back(imperson);
+		enemies_list_.push_front(imperson);
 	}
 }
 
@@ -21,12 +21,30 @@ void Game::controlEnemies() {
                 enemy->control(time_);
 }
 
+Person *Game::newSoul(Map &map) {
+	Person *person = new Person();
+	person->initPerson("hero", map.getHeroCoord(), map.getWidth());
+	return person;
+}
+
+void Game::endGame() {
+	for (auto &enemy: enemies_list_)
+		delete enemy;
+	
+	delete hero;
+}
+
 void Game::interactSouls() {
 	for (auto &enemy1: enemies_list_)
 		for(auto &enemy2: enemies_list_) {
 			if (enemy1 != enemy2)
                 	enemy1->interactWithAnother(dynamic_cast<Vessel *> (enemy2));
 		}
+
+	for (auto &enemy: enemies_list_) {
+		enemy->interactWithAnother(dynamic_cast<Vessel *> (hero));
+		hero->interactWithAnother(dynamic_cast<Vessel *> (enemy));
+	}	
 }
 
 void Game::updateEnemies(Map &map) {
@@ -35,7 +53,7 @@ void Game::updateEnemies(Map &map) {
 }
 
 void Game::drawEnemies() {
-	for (auto &enemy: enemies_list_)
+	for (auto &enemy: enemies_list_) 
 		window.draw(enemy->sprite);
 }
 
@@ -50,10 +68,10 @@ void Game::startMusic() {
 void Game::start(std::string nameMap) {
         map.initMap(nameMap);
 
-	hero.initPerson("hero", map.getHeroCoord(), map.getWidth());
+	hero = newSoul(map);
 	initImpersonList(map);
 	
-        camera.initCamera(hero.getBorder(), map.getPixels());
+        camera.initCamera(hero->getBorder(), map.getPixels());
 
         startMusic();
 
@@ -67,10 +85,10 @@ void Game::start(std::string nameMap) {
                 	window.close();
 	
 	        if ((event.type == sf::Event::MouseButtonReleased) && (event.mouseButton.button == sf::Mouse::Left))
-        	        hero.resetMouseLeft();
+        	        hero->resetMouseLeft();
 	
        		if ((event.type == sf::Event::KeyReleased) && (event.key.code == sf::Keyboard::Space))
-                	hero.resetSpace();
+                	hero->resetSpace();
 
         }
         
@@ -78,12 +96,12 @@ void Game::start(std::string nameMap) {
         camera.viewMap(time_);
 
 	controlEnemies();	
-	hero.control(time_, camera);
+	hero->control(time_, camera);
 	
 	interactSouls();
 
 	updateEnemies(map);
-        hero.update(time_, map);
+        hero->update(time_, map);
 
         window.clear();
 
@@ -91,9 +109,10 @@ void Game::start(std::string nameMap) {
         map.drawTiles(window);
 
 	drawEnemies();
-        window.draw(hero.sprite);
+        window.draw(hero->sprite);
 
         window.display();
-    }
+   	}
+	endGame();
 }
 }	//namespace gameModel
