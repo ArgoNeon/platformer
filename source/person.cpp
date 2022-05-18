@@ -92,7 +92,8 @@ void Imperson::control(float time) {
                /* if(isAttack)
                         isAttack = attack(camera);
                 else {*/
-		if (hit_wall_) {
+		if (hit_wall_ || hit_ally_ || hit_cliff_) {
+			hit_ally_ = false;
 			prevdir_ = dir_;
 
 			if(dir_ == dir::RIGHT)
@@ -154,6 +155,19 @@ void Imperson::control(float time) {
         }
 }
 
+void Vessel::interactWithAnother(Vessel *another) {
+	if (soul_ == another->soul_) {
+	if((dir_ == dir::RIGHT) && (border_.x >= another->coord_.x) && (coord_.x <= another->coord_.x) && (border_.y >= another->coord_.y) && (coord_.y <= another->border_.y)) {
+		speed_.x = -speedOfRun_;
+		hit_ally_ = true;
+	}
+	
+	if((dir_ == dir::LEFT) && (coord_.x <= another->border_.x) && (border_.x >= another->border_.x) && (border_.y >= another->border_.y) && (coord_.y <= another->border_.y)) {
+		speed_.x = speedOfRun_;
+                hit_ally_ = true;
+	}	
+	}
+}
 
 bool Vessel::attack() {
         state_ = state::ATTACK;
@@ -328,6 +342,7 @@ void Vessel::removeStack(std::vector<char>::size_type &str, std::vector<char>::s
 bool Vessel::checkChangeDir() {
 	if (prevdir_ != dir_) {
 		hit_wall_ = false;
+		hit_cliff_ = false;
 		return true;
 	} else
 		return false;
@@ -357,15 +372,25 @@ void Vessel::interactWithMap(Map &map) {
         border_ld_ = map.getTileFromCoord(border_);
         border_ld_str_ = border_ld_ / mapWidth_;
         border_ld_col_ = border_ld_ %  mapWidth_;
-	
-	checkChangeDir();
 
 	for(std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
-		if (map.mapOfTiles_[border_ld_str_ * mapWidth_ + col] == 'g')
+		switch(map.mapOfTiles_[border_ld_str_ * mapWidth_ + col]) {
+		case 'g':
 			counter++;
+			break;
+		case '0':
+			if (onGround_)
+				if (((coord_ld_col_ == col) && (dir_ == dir::LEFT)) || ((border_ld_col_ == col) && (dir_ == dir::RIGHT)))
+					hit_cliff_ = true;
+			break;
+		}
 
-	if (counter == 0)
+	checkChangeDir();
+
+	if (counter == 0) {
 		onGround_ = false;
+		hit_cliff_ = false;	
+	}
 
         for (std::vector<char>::size_type str = coord_ld_str_; str <= border_ld_str_; str++)
                 for (std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
@@ -435,7 +460,7 @@ bool Vessel::checkLife() {
 void Imperson::initImperson(std::string name, sf::Vector2f coord, long int mapWidth) {
 	initVessel(name, coord, mapWidth);
 
-	soul::IMPERSON;
+	soul_ = soul::IMPERSON;
 	
 	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
 	
@@ -578,7 +603,7 @@ Vessel::~Vessel() {}
 void Person::initPerson(std::string name, sf::Vector2f coord, long int mapWidth) {
 	initVessel(name, coord, mapWidth);
 
-	soul::PERSON;
+	soul_ = soul::PERSON;
 	
 	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
 	

@@ -52,7 +52,10 @@ class Vessel {
 		int hitpoints_;
 		int damage_;
 		
-		bool hit_wall_ = false;	
+		bool hit_wall_ = false;
+		bool hit_cliff_ = false;	
+		bool hit_ally_ = false;
+		bool hit_enemy_ = false;
 		bool onGround_ = false;
 		bool isAttack = false;
 		bool life_ = true;
@@ -69,6 +72,7 @@ class Vessel {
 		void removeStack(std::vector<char>::size_type &str, std::vector<char>::size_type &col);		
 		void checkWall(std::vector<char>::size_type &col);
 		bool checkChangeDir();
+
 		void interactWithMap(Map &map);
 
 		void initVessel(std::string name, sf::Vector2f coord, long int mapWidth);
@@ -119,6 +123,7 @@ class Vessel {
 
 		dir dir_;
 		dir prevdir_;
+		soul soul_;
 		dir_attack dir_attack_;
 		state state_;
 
@@ -131,6 +136,8 @@ class Vessel {
 
 		void writeProperties() const;
 		void writeStateTable();
+
+		void interactWithAnother(Vessel *another);
 		
 		sf::Vector2f getBorder() const;
 		void setBorder(sf::Vector2f border);

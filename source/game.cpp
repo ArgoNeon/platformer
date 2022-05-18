@@ -21,6 +21,14 @@ void Game::controlEnemies() {
                 enemy->control(time_);
 }
 
+void Game::interactSouls() {
+	for (auto &enemy1: enemies_list_)
+		for(auto &enemy2: enemies_list_) {
+			if (enemy1 != enemy2)
+                	enemy1->interactWithAnother(dynamic_cast<Vessel *> (enemy2));
+		}
+}
+
 void Game::updateEnemies(Map &map) {
 	for (auto &enemy: enemies_list_)
                 enemy->update(time_, map);
@@ -43,7 +51,6 @@ void Game::start(std::string nameMap) {
         map.initMap(nameMap);
 
 	hero.initPerson("hero", map.getHeroCoord(), map.getWidth());
-	slime.initImperson("slime", map.enemies_coord_[0], map.getWidth());
 	initImpersonList(map);
 	
         camera.initCamera(hero.getBorder(), map.getPixels());
@@ -69,16 +76,23 @@ void Game::start(std::string nameMap) {
         
 	window.setView(camera.getView());
         camera.viewMap(time_);
+
 	controlEnemies();	
 	hero.control(time_, camera);
+	
+	interactSouls();
+
 	updateEnemies(map);
         hero.update(time_, map);
+
         window.clear();
+
         window.draw(map.sprite_back);
         map.drawTiles(window);
-	window.draw(slime.sprite);
+
 	drawEnemies();
         window.draw(hero.sprite);
+
         window.display();
     }
 }

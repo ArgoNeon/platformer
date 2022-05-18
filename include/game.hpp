@@ -23,20 +23,21 @@ class Game {
         Camera camera;
 	Map map;
         Person hero;
-	Imperson slime;
 
 	std::list<Imperson *> enemies_list_;
 
 	float time_;
 	float Frame_;
 
+	void startMusic();
+	void initImpersonList(Map &map);
+
 	public:
 	void drawEnemies();
 	void controlEnemies();
 	void updateEnemies(Map &map);
-	void initImpersonList(Map &map);
+	void interactSouls(); 
 	void start(std::string nameMap);
-	void startMusic();
 
 	Game();
 	~Game() = default;		
