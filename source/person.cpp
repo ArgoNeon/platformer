@@ -7,35 +7,43 @@
 #include "../include/functions.hpp"
 
 void Person::control(float time, Camera &camera) {
-
 	switch(onGround_) {
 	case true:
-		if(isAttack)
-			isAttack = attack(camera);
-		else {
+		if(isAttack) {
+			isAttack = attack();
+			camera.setCoordView(border_);
+		} else {
 		
-        	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-			idle(camera);
+        	if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
+			idle();
+			camera.setCoordView(border_);
+		}
 		
-       		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			runRight(camera);
+       		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+			runRight();
+			camera.setCoordView(border_);
+		}
 
-     		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
-			runLeft(camera);
+     		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+			runLeft();
+			camera.setCoordView(border_);
+		}
 
 		if(mouse_left_ && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && (attack_clock_.getElapsedTime().asMilliseconds() > 700) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
 			frame_ = 0;
 			mouse_left_ = false;
 			isAttack = true;
 			attack_clock_.restart();
-                        attack(camera);
+                        attack();
+			camera.setCoordView(border_);
 		}
 		
 		if ((space_ && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
 			onGround_ = false;
 			space_ = false;
 			speed_.y = -speedOfJump_;
-			jump(camera);
+			jump();
+			camera.setCoordView(border_);
 		}
 		}
 
@@ -43,29 +51,111 @@ void Person::control(float time, Camera &camera) {
 	case false:
 		if (speed_.y > 0) {
  
-			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-                	        fall(camera);
+			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
+                	        fall();
+				camera.setCoordView(border_);
+			}
 		
-			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-                        	fallRight(camera);
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+                        	fallRight();
+				camera.setCoordView(border_);
+			}
 
-                	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-                        	fallLeft(camera);
+                	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+                        	fallLeft();
+				camera.setCoordView(border_);
+			}
 		} else {
-			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
-                                jump(camera);
+			if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
+                                jump();
+				camera.setCoordView(border_);
+			}
 			
-			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-                                jumpRight(camera);
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+                                jumpRight();
+				camera.setCoordView(border_);
+			}
 
-                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-                                jumpLeft(camera);
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+                                jumpLeft();
+				camera.setCoordView(border_);
+			}
 		}
 		break;	
 	}
 }
 
-bool Vessel::attack(Camera &camera) {
+void Imperson::control(float time) {
+
+        switch(onGround_) {
+        case true:
+               /* if(isAttack)
+                        isAttack = attack(camera);
+                else {*/
+		if (hit_wall_) {
+			prevdir_ = dir_;
+
+			if(dir_ == dir::RIGHT)
+				dir_ = dir::LEFT;
+			else
+				dir_ = dir::RIGHT;
+		}
+
+                if(dir_ == dir::RIGHT)
+                        runRight();
+		else
+			runLeft();
+
+                /*if(0)
+                        runRight(camera);
+
+                if(0)
+                        runLeft(camera);
+
+                if(mouse_left_ && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && (attack_clock_.getElapsedTime().asMilliseconds() > 700) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
+                        frame_ = 0;
+                        mouse_left_ = false;
+                        isAttack = true;
+                        attack_clock_.restart();
+                        attack(camera);
+                }
+
+                if ((space_ && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && (onGround_) && (jump_clock_.getElapsedTime().asMilliseconds() > 150)) {
+                        onGround_ = false;
+                        space_ = false;
+                        speed_.y = -speedOfJump_;
+                        jump(camera);
+                }
+                }
+*/
+                break;
+
+        case false:
+                if (speed_.y > 0) 
+                        if(1)
+                                fall();
+/*
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                                fallRight(camera);
+
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                                fallLeft(camera);
+                } else {
+                        if(!((sf::Keyboard::isKeyPressed(sf::Keyboard::D)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A))))
+                                jump(camera);
+
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                                jumpRight(camera);
+
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                                jumpLeft(camera);
+                }*/
+                break;
+        }
+}
+
+
+bool Vessel::attack() {
         state_ = state::ATTACK;
         frame_ += frame_speed_;
 
@@ -76,15 +166,12 @@ bool Vessel::attack(Camera &camera) {
         	else
                 	setTextureFrameLeft();
 
-		camera.setCoordView(border_);
 		return true;
-        } else  {
-		camera.setCoordView(border_);
+        } else
 		return false;
-	}
 }
 
-void Vessel::hurt(Camera & camera) {
+void Vessel::hurt() {
         state_ = state::HURT;
         frame_ += frame_speed_;
 
@@ -95,10 +182,9 @@ void Vessel::hurt(Camera & camera) {
                 setTextureFrameRight();
         else
                 setTextureFrameLeft();
-	camera.setCoordView(border_);
 }
 
-void Vessel::death(Camera &camera) {
+void Vessel::death() {
         state_ = state::DEATH;
         frame_ += frame_speed_;
 
@@ -109,10 +195,9 @@ void Vessel::death(Camera &camera) {
                 setTextureFrameRight();
         else
                 setTextureFrameRight();
-	camera.setCoordView(border_);
 }
 
-void Vessel::jump(Camera &camera) {
+void Vessel::jump() {
         state_ = state::JUMP;
         frame_ += frame_speed_;
 
@@ -123,11 +208,9 @@ void Vessel::jump(Camera &camera) {
 		setTextureFrameRight();
 	else
 	        setTextureFrameLeft();
- 
-	camera.setCoordView(border_);
 }
 
-void Vessel::fall(Camera &camera) {
+void Vessel::fall() {
         state_ = state::FALL;
         frame_ += frame_speed_;
 
@@ -138,11 +221,9 @@ void Vessel::fall(Camera &camera) {
         	setTextureFrameRight();	
 	else 
 		setTextureFrameLeft();
-
-	camera.setCoordView(border_);
 }
 
-void Vessel::fallRight(Camera &camera) {
+void Vessel::fallRight() {
 	dir_ = dir::RIGHT;
         dir_attack_ = dir_attack::RIGHT;
         state_ = state::FALL;
@@ -153,10 +234,9 @@ void Vessel::fallRight(Camera &camera) {
                 frame_ = std::fmod(frame_, fall_);
 
        	setTextureFrameRight(); 
-	camera.setCoordView(border_);
 }
 
-void Vessel::fallLeft(Camera &camera) {
+void Vessel::fallLeft() {
         dir_ = dir::LEFT;
         dir_attack_ = dir_attack::LEFT;
         state_ = state::FALL;
@@ -167,10 +247,9 @@ void Vessel::fallLeft(Camera &camera) {
                 frame_ = std::fmod(frame_, fall_);
 
         setTextureFrameLeft();
-        camera.setCoordView(border_);
 }
 
-void Vessel::jumpRight(Camera &camera) {
+void Vessel::jumpRight() {
 	dir_ = dir::RIGHT;
 	dir_attack_ = dir_attack::RIGHT;
         state_ = state::JUMP;
@@ -181,10 +260,9 @@ void Vessel::jumpRight(Camera &camera) {
                 frame_ = std::fmod(frame_, jump_);
 
         setTextureFrameRight();
-	camera.setCoordView(border_);
 }
 
-void Vessel::jumpLeft(Camera &camera) {
+void Vessel::jumpLeft() {
 	dir_ = dir::LEFT;
 	dir_attack_ = dir_attack::LEFT;
         state_ = state::JUMP;
@@ -195,10 +273,9 @@ void Vessel::jumpLeft(Camera &camera) {
                 frame_ = std::fmod(frame_, jump_);
 
         setTextureFrameLeft();
-	camera.setCoordView(border_);
 }
 
-void Vessel::idle(Camera &camera) {
+void Vessel::idle() {
 	state_ = state::IDLE;
         frame_ += frame_speed_;
 
@@ -209,10 +286,9 @@ void Vessel::idle(Camera &camera) {
        		setTextureFrameRight();
   	else
         	setTextureFrameLeft();
-	camera.setCoordView(border_);
 }
 
-void Vessel::runRight(Camera &camera) {
+void Vessel::runRight() {
 	dir_ = dir::RIGHT;
         dir_attack_ = dir_attack::RIGHT;
         state_ = state::RUN;
@@ -222,10 +298,9 @@ void Vessel::runRight(Camera &camera) {
         	frame_ = std::fmod(frame_, run_);
 
         setTextureFrameRight();
- 	camera.setCoordView(border_);
 }
 
-void Vessel::runLeft(Camera &camera) {
+void Vessel::runLeft() {
 	dir_ = dir::LEFT;
 	dir_attack_ = dir_attack::LEFT;
         state_ = state::RUN;
@@ -235,8 +310,6 @@ void Vessel::runLeft(Camera &camera) {
         	frame_ = std::fmod(frame_, run_);
 
    	setTextureFrameLeft();
-       	camera.setCoordView(border_);
-
 }
 
 bool Vessel::checkRoof(std::vector<char>::size_type &str, std::vector<char>::size_type &col) {
@@ -252,6 +325,28 @@ void Vessel::removeStack(std::vector<char>::size_type &str, std::vector<char>::s
 		speed_.y = -speedOfRun_;
 }
 
+bool Vessel::checkChangeDir() {
+	if (prevdir_ != dir_) {
+		hit_wall_ = false;
+		return true;
+	} else
+		return false;
+				
+}
+
+void Vessel::checkWall(std::vector<char>::size_type &col) {
+
+	if ((speed_.x > 0) && (border_ld_col_ == col)) {
+        	speed_.x = -0.0001;
+		hit_wall_ = true;
+	}
+
+	if ((speed_.x < 0) && (coord_ld_col_ == col)) {
+           	speed_.x = 0.0001;
+		hit_wall_ = true;
+	}
+}
+
 void Vessel::interactWithMap(Map &map) {
 	int counter = 0;
 
@@ -262,6 +357,8 @@ void Vessel::interactWithMap(Map &map) {
         border_ld_ = map.getTileFromCoord(border_);
         border_ld_str_ = border_ld_ / mapWidth_;
         border_ld_col_ = border_ld_ %  mapWidth_;
+	
+	checkChangeDir();
 
 	for(std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
 		if (map.mapOfTiles_[border_ld_str_ * mapWidth_ + col] == 'g')
@@ -285,20 +382,11 @@ void Vessel::interactWithMap(Map &map) {
                                 if (checkRoof(str, col))
                                         speed_.y = 0;
 
-				if (onGround_ && (str < border_ld_str_)) {
-					if ((speed_.x > 0) && (border_ld_col_ == col))
-                                       		speed_.x = -0.0001;
+				if (onGround_ && (str < border_ld_str_)) 
+					checkWall(col);
 
-                                	if ((speed_.x < 0) && (coord_ld_col_ == col))
-                                        	speed_.x = 0.0001;
-
-				} else if (!onGround_) {
-					if ((speed_.x > 0) && (border_ld_col_ == col))
-                                 	       speed_.x = -0.0001;
-
-                              		if ((speed_.x < 0) && (coord_ld_col_ == col))
-                                        	speed_.x = 0.0001;
-				}
+				else if (!onGround_)
+					checkWall(col);
 				}
 }
 
@@ -334,6 +422,14 @@ void Vessel::update(float time, Map &map) {
         coord_frame_ += speed_ * time;
 
         sprite.setPosition(coord_frame_);
+}
+
+bool Vessel::checkLife() {
+
+	if (hitpoints_ <= 0)
+		life_ = false;
+
+	return life_;
 }
 
 void Imperson::initImperson(std::string name, sf::Vector2f coord, long int mapWidth) {
@@ -387,6 +483,7 @@ void Vessel::initVessel(std::string name, sf::Vector2f coord, long int mapWidth)
 	speed_ = {0, 0};
 
 	dir_ = dir::RIGHT;
+	prevdir_ = dir::RIGHT;
 	dir_attack_ = dir_attack::RIGHT;
 	state_ = state::IDLE;	
 
@@ -402,6 +499,9 @@ void Vessel::readProperties() {
         std::ifstream in;
         in.open("data/" + name_ + "/properties.dat");
 	
+
+	in >> hitpoints_;
+	in >> damage_;
 	in >> acel_;
 	in >> speedOfRun_;
 	in >> speedOfJump_;

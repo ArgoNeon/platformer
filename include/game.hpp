@@ -32,7 +32,8 @@ class Game {
 
 	public:
 	void drawEnemies();
-	void updateEnemies(float time, Map &map);
+	void controlEnemies();
+	void updateEnemies(Map &map);
 	void initImpersonList(Map &map);
 	void start(std::string nameMap);
 	void startMusic();

@@ -16,9 +16,14 @@ void Game::initImpersonList(Map &map) {
 	}
 }
 
-void Game::updateEnemies(float time, Map &map) {
+void Game::controlEnemies() {
 	for (auto &enemy: enemies_list_)
-                enemy->update(time, map);
+                enemy->control(time_);
+}
+
+void Game::updateEnemies(Map &map) {
+	for (auto &enemy: enemies_list_)
+                enemy->update(time_, map);
 }
 
 void Game::drawEnemies() {
@@ -64,8 +69,9 @@ void Game::start(std::string nameMap) {
         
 	window.setView(camera.getView());
         camera.viewMap(time_);
+	controlEnemies();	
 	hero.control(time_, camera);
-	updateEnemies(time_, map);
+	updateEnemies(map);
         hero.update(time_, map);
         window.clear();
         window.draw(map.sprite_back);

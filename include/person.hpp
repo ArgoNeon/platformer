@@ -52,37 +52,40 @@ class Vessel {
 		int hitpoints_;
 		int damage_;
 		
-		bool onGround_ = true;
+		bool hit_wall_ = false;	
+		bool onGround_ = false;
 		bool isAttack = false;
-		bool life_;
-		int hitpoints_;
+		bool life_ = true;
 
 		void readProperties();
 		void readStateTable();
 		
 		void setTextureFrameRight();
 		void setTextureFrameLeft();
-
+		
+		bool checkLife();
 		bool checkRoof(std::vector<char>::size_type &str, std::vector<char>::size_type &col);
 		bool checkFloor(std::vector<char>::size_type &str, std::vector<char>::size_type &col);
 		void removeStack(std::vector<char>::size_type &str, std::vector<char>::size_type &col);		
+		void checkWall(std::vector<char>::size_type &col);
+		bool checkChangeDir();
 		void interactWithMap(Map &map);
 
 		void initVessel(std::string name, sf::Vector2f coord, long int mapWidth);
 
-		void idle(Camera &camera);
-                void runRight(Camera &camera);
-                void runLeft(Camera &camera);
-                void run(Camera &camera);
-                void jump(Camera &camera);
-                void jumpRight(Camera &camera);
-                void jumpLeft(Camera &camera);
-                void fall(Camera &camera);
-                void fallRight(Camera &camera);
-                void fallLeft(Camera &camera);
-		bool attack(Camera &camera);
-		void hurt(Camera & camera);
-		void death(Camera &camera);
+		void idle();
+                void runRight();
+                void runLeft();
+                void run();
+                void jump();
+                void jumpRight();
+                void jumpLeft();
+                void fall();
+                void fallRight();
+                void fallLeft();
+		bool attack();
+		void hurt();
+		void death();
 
 	public:
 		enum class soul {
@@ -115,6 +118,7 @@ class Vessel {
 		std::string name_;
 
 		dir dir_;
+		dir prevdir_;
 		dir_attack dir_attack_;
 		state state_;
 
@@ -163,7 +167,7 @@ class Imperson: public Vessel {
                 ~Imperson() override = default;
 		
 		void initImperson(std::string name, sf::Vector2f coord, long int mapWidth);
-		
+		void control(float time);		
 };
 
 #endif //PERSON_CPP
