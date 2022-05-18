@@ -247,6 +247,11 @@ bool Vessel::checkFloor(std::vector<char>::size_type &str, std::vector<char>::si
 	return ((speed_.y > 0) && (border_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (border_.y - 0.5 < str * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH));
 }
 
+void Vessel::removeStack(std::vector<char>::size_type &str, std::vector<char>::size_type &col) {
+	if ((speed_.y > 0) && (border_ld_str_ == str) && (coord_.x + 0.5 < (col + 1) * TILE_WIDTH ) && (border_.y - 0.5 > str * TILE_HEIGHT) && (border_.x - 0.5 > col * TILE_WIDTH)) 
+		speed_.y = -speedOfRun_;
+}
+
 void Vessel::interactWithMap(Map &map) {
 	int counter = 0;
 
@@ -268,7 +273,8 @@ void Vessel::interactWithMap(Map &map) {
         for (std::vector<char>::size_type str = coord_ld_str_; str <= border_ld_str_; str++)
                 for (std::vector<char>::size_type col = coord_ld_col_; col <= border_ld_col_; col++)
                         if (map.mapOfTiles_[str * mapWidth_ + col] == 'g') {
-                                if ((speed_.y > 0) && (border_ld_str_ == str)) {
+				removeStack(str, col);
+                                if (checkFloor(str, col)) {
                                         if (!onGround_)
 						jump_clock_.restart();
 
@@ -328,6 +334,15 @@ void Vessel::update(float time, Map &map) {
         coord_frame_ += speed_ * time;
 
         sprite.setPosition(coord_frame_);
+}
+
+void Imperson::initImperson(std::string name, sf::Vector2f coord, long int mapWidth) {
+	initVessel(name, coord, mapWidth);
+
+	soul::IMPERSON;
+	
+	sprite.setTextureRect(sf::IntRect(0, frame_border_.y * static_cast<int>(state_), frame_border_.x, frame_border_.y));
+	
 }
 
 void Person::resetMouseLeft() {

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall 
+CXXFLAGS = -Wall -std=c++17 
 PROG = game
 OBJECT = camera.o map.o person.o functions.o game.o
 OBJ = $(addprefix source/, $(OBJECT)) main.o

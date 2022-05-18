@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <list>
 
 #include "person.hpp"
 #include "camera.hpp"
@@ -22,11 +23,17 @@ class Game {
         Camera camera;
 	Map map;
         Person hero;
+	Imperson slime;
+
+	std::list<Imperson *> enemies_list_;
 
 	float time_;
 	float Frame_;
 
 	public:
+	void drawEnemies();
+	void updateEnemies(float time, Map &map);
+	void initImpersonList(Map &map);
 	void start(std::string nameMap);
 	void startMusic();
 

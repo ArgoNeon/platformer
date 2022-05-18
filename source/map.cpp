@@ -57,6 +57,13 @@ void Map::readMapOfTiles() {
                         int x = TILE_WIDTH * (k % width_);
                         setHeroCoord({static_cast<float> (x), static_cast<float> (y)});
 		}
+		
+		if (tile == 'e') {
+			std::vector<char>::size_type k = mapOfTiles_.size();
+                        int y = TILE_HEIGHT * (k / width_);
+                        int x = TILE_WIDTH * (k % width_);
+                      	enemies_coord_.push_back({static_cast<float> (x), static_cast<float> (y)});
+		}
 	}
 
 	in.close();

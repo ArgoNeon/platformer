@@ -11,6 +11,7 @@ class Map{
 		sf::Vector2f hero_coord_;
 		long int width_;		
 	public:
+		std::vector<sf::Vector2f> enemies_coord_;
 		std::string name_;
 
 		sf::Image image_back;
